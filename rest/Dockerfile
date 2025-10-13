@@ -8,7 +8,7 @@ COPY . .
 
 RUN mvn package -DskipTests
 
-FROM amazoncorretto:21-jdk-alpine
+FROM amazoncorretto:21-alpine
 WORKDIR /app
 
 COPY --from=build /usr/app/target/*.jar /app/runner.jar
