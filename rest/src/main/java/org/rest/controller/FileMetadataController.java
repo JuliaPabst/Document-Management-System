@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.rest.dto.FileMetadataCreateDto;
 import org.rest.dto.FileMetadataResponseDto;
 import org.rest.dto.FileMetadataUpdateDto;
+import org.rest.mapper.FileMetadataMapper;
 import org.rest.model.FileMetadata;
 import org.rest.service.FileMetadataService;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/files")
@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class FileMetadataController {
     
     private final FileMetadataService fileMetadataService;
+    private final FileMetadataMapper fileMetadataMapper;
     
     @PostMapping
     @Operation(summary = "Upload file metadata", description = "Create new file metadata entry")
@@ -41,9 +42,9 @@ public class FileMetadataController {
         log.info("Received request to upload file metadata for: {}", createDto.getFilename());
         // multipath file handling can be added here if needed
 
-        FileMetadata fileMetadata = mapToEntity(createDto);
+        FileMetadata fileMetadata = fileMetadataMapper.toEntity(createDto);
         FileMetadata savedMetadata = fileMetadataService.createFileMetadata(fileMetadata);
-        FileMetadataResponseDto response = mapToResponseDto(savedMetadata);
+        FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(savedMetadata);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
     
@@ -59,7 +60,7 @@ public class FileMetadataController {
         log.info("Received request to get file metadata with ID: {}", id);
         
         FileMetadata fileMetadata = fileMetadataService.getFileMetadataById(id);
-        FileMetadataResponseDto response = mapToResponseDto(fileMetadata);
+        FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(fileMetadata);
         return ResponseEntity.ok(response);
     }
     
@@ -88,9 +89,7 @@ public class FileMetadataController {
             fileMetadataList = fileMetadataService.getAllFileMetadata();
         }
         
-        List<FileMetadataResponseDto> response = fileMetadataList.stream()
-                .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+        List<FileMetadataResponseDto> response = fileMetadataMapper.toResponseDtoList(fileMetadataList);
         
         return ResponseEntity.ok(response);
     }
@@ -108,9 +107,9 @@ public class FileMetadataController {
             @RequestBody FileMetadataUpdateDto updateDto) {
         log.info("Received request to update file metadata with ID: {}", id);
         
-        FileMetadata updates = mapToEntity(updateDto);
+        FileMetadata updates = fileMetadataMapper.toEntity(updateDto);
         FileMetadata updatedMetadata = fileMetadataService.updateFileMetadata(id, updates);
-        FileMetadataResponseDto response = mapToResponseDto(updatedMetadata);
+        FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(updatedMetadata);
         return ResponseEntity.ok(response);
     }
     
@@ -127,36 +126,5 @@ public class FileMetadataController {
         
         fileMetadataService.deleteFileMetadata(id);
         return ResponseEntity.noContent().build();
-    }
-    
-    // Mapping methods - DTO to Entity and Entity to DTO
-    private FileMetadata mapToEntity(FileMetadataCreateDto createDto) {
-        FileMetadata fileMetadata = new FileMetadata();
-        fileMetadata.setFilename(createDto.getFilename());
-        fileMetadata.setAuthor(createDto.getAuthor());
-        fileMetadata.setFileType(createDto.getFileType());
-        fileMetadata.setSize(createDto.getSize());
-        return fileMetadata;
-    }
-    
-    private FileMetadata mapToEntity(FileMetadataUpdateDto updateDto) {
-        FileMetadata fileMetadata = new FileMetadata();
-        fileMetadata.setFilename(updateDto.getFilename());
-        fileMetadata.setAuthor(updateDto.getAuthor());
-        fileMetadata.setFileType(updateDto.getFileType());
-        fileMetadata.setSize(updateDto.getSize());
-        return fileMetadata;
-    }
-    
-    private FileMetadataResponseDto mapToResponseDto(FileMetadata fileMetadata) {
-        return new FileMetadataResponseDto(
-                fileMetadata.getId(),
-                fileMetadata.getFilename(),
-                fileMetadata.getAuthor(),
-                fileMetadata.getFileType(),
-                fileMetadata.getSize(),
-                fileMetadata.getUploadTime(),
-                fileMetadata.getLastEdited()
-        );
     }
 }
