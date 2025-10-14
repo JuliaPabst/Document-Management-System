@@ -22,30 +22,27 @@ paths:
     post:
       tags:
         - File Metadata Management
-      summary: Upload file metadata
-      description: Create new file metadata entry
-      operationId: uploadFileMetadata
+      summary: Upload file with metadata
+      description: Upload a file and create metadata entry
+      operationId: uploadFile
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FileMetadataCreateDto'
-            examples:
-              example1:
-                summary: PDF Document
-                value:
-                  filename: "document.pdf"
-                  author: "John Doe"
-                  fileType: "PDF"
-                  size: 1024000
-              example2:
-                summary: Word Document
-                value:
-                  filename: "report.docx"
-                  author: "Jane Smith"
-                  fileType: "DOCX"
-                  size: 512000
+              type: object
+              required:
+                - file
+                - author
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The file to upload
+                author:
+                  type: string
+                  description: Author of the document
+                  example: "John Doe"
       responses:
         '201':
           description: File metadata created successfully
@@ -85,6 +82,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal Server Error
+                  value:
+                    timestamp: "2025-10-08T15:30:00"
+                    status: 500
+                    error: "Internal Server Error"
+                    message: "An unexpected error occurred"
+                    path: "/api/v1/files"
 
     get:
       tags:
@@ -150,6 +156,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal Server Error
+                  value:
+                    timestamp: "2025-10-08T15:30:00"
+                    status: 500
+                    error: "Internal Server Error"
+                    message: "An unexpected error occurred"
+                    path: "/api/v1/files"
 
   /api/v1/files/{id}:
     get:
@@ -206,6 +221,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal Server Error
+                  value:
+                    timestamp: "2025-10-08T15:30:00"
+                    status: 500
+                    error: "Internal Server Error"
+                    message: "An unexpected error occurred"
+                    path: "/api/v1/files/999"
 
     patch:
       tags:
@@ -268,12 +292,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: File Not Found
+                  value:
+                    timestamp: "2025-10-08T15:30:00"
+                    status: 404
+                    error: "Not Found"
+                    message: "FileMetadata with id 999 not found"
+                    path: "/api/v1/files/999"
         '500':
           description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal Server Error
+                  value:
+                    timestamp: "2025-10-08T15:30:00"
+                    status: 500
+                    error: "Internal Server Error"
+                    message: "An unexpected error occurred"
+                    path: "/api/v1/files/999"
 
     delete:
       tags:
@@ -314,6 +356,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal Server Error
+                  value:
+                    timestamp: "2025-10-08T15:30:00"
+                    status: 500
+                    error: "Internal Server Error"
+                    message: "An unexpected error occurred"
+                    path: "/api/v1/files/999"
 
 components:
   schemas:
