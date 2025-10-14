@@ -6,9 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.rest.dto.FileMetadataCreateDto;
-import org.rest.dto.FileMetadataResponseDto;
-import org.rest.dto.FileMetadataUpdateDto;
 import org.rest.exception.FileMetadataNotFoundException;
 import org.rest.model.FileMetadata;
 import org.rest.repository.FileMetadataRepository;
@@ -32,21 +29,24 @@ public class FileMetadataServiceTest {
 
     @Test
     void testCreateFileMetadata() {
-        FileMetadataCreateDto dto = new FileMetadataCreateDto();
-        dto.setFilename("test.pdf");
-        dto.setAuthor("Tester");
-        dto.setFileType("pdf");
-        dto.setSize(123L);
-        FileMetadata entity = new FileMetadata();
-        entity.setId(1L);
-        entity.setFilename("test.pdf");
-        entity.setAuthor("Tester");
-        entity.setFileType("pdf");
-        entity.setSize(123L);
-        when(fileMetadataRepository.save(any(FileMetadata.class))).thenReturn(entity);
-        FileMetadataResponseDto response = fileMetadataService.createFileMetadata(dto);
+        FileMetadata inputEntity = new FileMetadata();
+        inputEntity.setFilename("test.pdf");
+        inputEntity.setAuthor("Tester");
+        inputEntity.setFileType("pdf");
+        inputEntity.setSize(123L);
+        
+        FileMetadata savedEntity = new FileMetadata();
+        savedEntity.setId(1L);
+        savedEntity.setFilename("test.pdf");
+        savedEntity.setAuthor("Tester");
+        savedEntity.setFileType("pdf");
+        savedEntity.setSize(123L);
+        
+        when(fileMetadataRepository.save(any(FileMetadata.class))).thenReturn(savedEntity);
+        FileMetadata response = fileMetadataService.createFileMetadata(inputEntity);
         assertEquals("test.pdf", response.getFilename());
         assertEquals("Tester", response.getAuthor());
+        assertEquals(1L, response.getId());
     }
 
     @Test
@@ -58,7 +58,7 @@ public class FileMetadataServiceTest {
         entity.setFileType("pdf");
         entity.setSize(456L);
         when(fileMetadataRepository.findById(2L)).thenReturn(Optional.of(entity));
-        FileMetadataResponseDto response = fileMetadataService.getFileMetadataById(2L);
+        FileMetadata response = fileMetadataService.getFileMetadataById(2L);
         assertEquals("found.pdf", response.getFilename());
         assertEquals(2L, response.getId());
     }
@@ -77,14 +77,16 @@ public class FileMetadataServiceTest {
         entity.setAuthor("Old Author");
         entity.setFileType("pdf");
         entity.setSize(789L);
-        FileMetadataUpdateDto updateDto = new FileMetadataUpdateDto();
-        updateDto.setFilename("new.pdf");
-        updateDto.setAuthor("New Author");
-        updateDto.setFileType("docx");
-        updateDto.setSize(101L);
+        
+        FileMetadata updateEntity = new FileMetadata();
+        updateEntity.setFilename("new.pdf");
+        updateEntity.setAuthor("New Author");
+        updateEntity.setFileType("docx");
+        updateEntity.setSize(101L);
+        
         when(fileMetadataRepository.findById(3L)).thenReturn(Optional.of(entity));
         when(fileMetadataRepository.save(any(FileMetadata.class))).thenReturn(entity);
-        FileMetadataResponseDto response = fileMetadataService.updateFileMetadata(3L, updateDto);
+        FileMetadata response = fileMetadataService.updateFileMetadata(3L, updateEntity);
         assertEquals("new.pdf", response.getFilename());
         assertEquals("New Author", response.getAuthor());
         assertEquals("docx", response.getFileType());
@@ -93,9 +95,9 @@ public class FileMetadataServiceTest {
 
     @Test
     void testUpdateFileMetadataNotFound() {
-        FileMetadataUpdateDto updateDto = new FileMetadataUpdateDto();
+        FileMetadata updateEntity = new FileMetadata();
         when(fileMetadataRepository.findById(42L)).thenReturn(Optional.empty());
-        assertThrows(FileMetadataNotFoundException.class, () -> fileMetadataService.updateFileMetadata(42L, updateDto));
+        assertThrows(FileMetadataNotFoundException.class, () -> fileMetadataService.updateFileMetadata(42L, updateEntity));
     }
 
     @Test
@@ -121,7 +123,7 @@ public class FileMetadataServiceTest {
         entity.setFileType("pdf");
         entity.setSize(222L);
         when(fileMetadataRepository.findByOrderByUploadTimeDesc()).thenReturn(List.of(entity));
-        List<FileMetadataResponseDto> result = fileMetadataService.getAllFileMetadata();
+        List<FileMetadata> result = fileMetadataService.getAllFileMetadata();
         assertEquals(1, result.size());
         assertEquals("all.pdf", result.get(0).getFilename());
     }
@@ -129,7 +131,7 @@ public class FileMetadataServiceTest {
     @Test
     void testGetAllFileMetadataEmpty() {
         when(fileMetadataRepository.findByOrderByUploadTimeDesc()).thenReturn(Collections.emptyList());
-        List<FileMetadataResponseDto> result = fileMetadataService.getAllFileMetadata();
+        List<FileMetadata> result = fileMetadataService.getAllFileMetadata();
         assertTrue(result.isEmpty());
     }
 
@@ -142,7 +144,7 @@ public class FileMetadataServiceTest {
         entity.setFileType("pdf");
         entity.setSize(333L);
         when(fileMetadataRepository.searchByKeyword("search")).thenReturn(List.of(entity));
-        List<FileMetadataResponseDto> result = fileMetadataService.searchFileMetadata("search");
+        List<FileMetadata> result = fileMetadataService.searchFileMetadata("search");
         assertEquals(1, result.size());
         assertEquals("search.pdf", result.get(0).getFilename());
     }
@@ -156,7 +158,7 @@ public class FileMetadataServiceTest {
         entity.setFileType("pdf");
         entity.setSize(444L);
         when(fileMetadataRepository.findByAuthor("Alice")).thenReturn(List.of(entity));
-        List<FileMetadataResponseDto> result = fileMetadataService.getFileMetadataByAuthor("Alice");
+        List<FileMetadata> result = fileMetadataService.getFileMetadataByAuthor("Alice");
         assertEquals(1, result.size());
         assertEquals("Alice", result.get(0).getAuthor());
     }
@@ -170,7 +172,7 @@ public class FileMetadataServiceTest {
         entity.setFileType("pdf");
         entity.setSize(555L);
         when(fileMetadataRepository.findByFileType("pdf")).thenReturn(List.of(entity));
-        List<FileMetadataResponseDto> result = fileMetadataService.getFileMetadataByFileType("pdf");
+        List<FileMetadata> result = fileMetadataService.getFileMetadataByFileType("pdf");
         assertEquals(1, result.size());
         assertEquals("pdf", result.get(0).getFileType());
     }

@@ -2,9 +2,6 @@ package org.rest.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.rest.dto.FileMetadataCreateDto;
-import org.rest.dto.FileMetadataResponseDto;
-import org.rest.dto.FileMetadataUpdateDto;
 import org.rest.exception.FileMetadataNotFoundException;
 import org.rest.model.FileMetadata;
 import org.rest.repository.FileMetadataRepository;
@@ -12,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,94 +18,74 @@ public class FileMetadataService {
     
     private final FileMetadataRepository fileMetadataRepository;
     
-    public FileMetadataResponseDto createFileMetadata(FileMetadataCreateDto createDto) {
-        log.info("Creating file metadata for filename: {}", createDto.getFilename());
-        
-        FileMetadata fileMetadata = new FileMetadata();
-        fileMetadata.setFilename(createDto.getFilename());
-        fileMetadata.setAuthor(createDto.getAuthor());
-        fileMetadata.setFileType(createDto.getFileType());
-        fileMetadata.setSize(createDto.getSize());
+    public FileMetadata createFileMetadata(FileMetadata fileMetadata) {
+        log.info("Creating file metadata for filename: {}", fileMetadata.getFilename());
         
         FileMetadata savedMetadata = fileMetadataRepository.save(fileMetadata);
         log.info("File metadata created with ID: {}", savedMetadata.getId());
         
-        return mapToResponseDto(savedMetadata);
+        return savedMetadata;
     }
     
     @Transactional(readOnly = true)
-    public FileMetadataResponseDto getFileMetadataById(Long id) {
+    public FileMetadata getFileMetadataById(Long id) {
         log.info("Retrieving file metadata with ID: {}", id);
         
-        FileMetadata fileMetadata = fileMetadataRepository.findById(id)
+        return fileMetadataRepository.findById(id)
                 .orElseThrow(() -> new FileMetadataNotFoundException("File metadata not found with ID: " + id));
-        
-        return mapToResponseDto(fileMetadata);
     }
     
     @Transactional(readOnly = true)
-    public List<FileMetadataResponseDto> getAllFileMetadata() {
+    public List<FileMetadata> getAllFileMetadata() {
         log.info("Retrieving all file metadata");
         
-        return fileMetadataRepository.findByOrderByUploadTimeDesc()
-                .stream()
-                .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+        return fileMetadataRepository.findByOrderByUploadTimeDesc();
     }
     
     @Transactional(readOnly = true)
-    public List<FileMetadataResponseDto> searchFileMetadata(String keyword) {
+    public List<FileMetadata> searchFileMetadata(String keyword) {
         log.info("Searching file metadata with keyword: {}", keyword);
         
-        return fileMetadataRepository.searchByKeyword(keyword)
-                .stream()
-                .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+        return fileMetadataRepository.searchByKeyword(keyword);
     }
     
     @Transactional(readOnly = true)
-    public List<FileMetadataResponseDto> getFileMetadataByAuthor(String author) {
+    public List<FileMetadata> getFileMetadataByAuthor(String author) {
         log.info("Retrieving file metadata by author: {}", author);
         
-        return fileMetadataRepository.findByAuthor(author)
-                .stream()
-                .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+        return fileMetadataRepository.findByAuthor(author);
     }
     
     @Transactional(readOnly = true)
-    public List<FileMetadataResponseDto> getFileMetadataByFileType(String fileType) {
+    public List<FileMetadata> getFileMetadataByFileType(String fileType) {
         log.info("Retrieving file metadata by file type: {}", fileType);
         
-        return fileMetadataRepository.findByFileType(fileType)
-                .stream()
-                .map(this::mapToResponseDto)
-                .collect(Collectors.toList());
+        return fileMetadataRepository.findByFileType(fileType);
     }
     
-    public FileMetadataResponseDto updateFileMetadata(Long id, FileMetadataUpdateDto updateDto) {
+    public FileMetadata updateFileMetadata(Long id, FileMetadata updates) {
         log.info("Updating file metadata with ID: {}", id);
         
         FileMetadata fileMetadata = fileMetadataRepository.findById(id)
                 .orElseThrow(() -> new FileMetadataNotFoundException("File metadata not found with ID: " + id));
         
-        if (updateDto.getFilename() != null) {
-            fileMetadata.setFilename(updateDto.getFilename());
+        if (updates.getFilename() != null) {
+            fileMetadata.setFilename(updates.getFilename());
         }
-        if (updateDto.getAuthor() != null) {
-            fileMetadata.setAuthor(updateDto.getAuthor());
+        if (updates.getAuthor() != null) {
+            fileMetadata.setAuthor(updates.getAuthor());
         }
-        if (updateDto.getFileType() != null) {
-            fileMetadata.setFileType(updateDto.getFileType());
+        if (updates.getFileType() != null) {
+            fileMetadata.setFileType(updates.getFileType());
         }
-        if (updateDto.getSize() != null) {
-            fileMetadata.setSize(updateDto.getSize());
+        if (updates.getSize() != null) {
+            fileMetadata.setSize(updates.getSize());
         }
         
         FileMetadata updatedMetadata = fileMetadataRepository.save(fileMetadata);
         log.info("File metadata updated with ID: {}", updatedMetadata.getId());
         
-        return mapToResponseDto(updatedMetadata);
+        return updatedMetadata;
     }
     
     public void deleteFileMetadata(Long id) {
@@ -121,17 +97,5 @@ public class FileMetadataService {
         
         fileMetadataRepository.deleteById(id);
         log.info("File metadata deleted with ID: {}", id);
-    }
-    
-    private FileMetadataResponseDto mapToResponseDto(FileMetadata fileMetadata) {
-        return new FileMetadataResponseDto(
-                fileMetadata.getId(),
-                fileMetadata.getFilename(),
-                fileMetadata.getAuthor(),
-                fileMetadata.getFileType(),
-                fileMetadata.getSize(),
-                fileMetadata.getUploadTime(),
-                fileMetadata.getLastEdited()
-        );
     }
 }

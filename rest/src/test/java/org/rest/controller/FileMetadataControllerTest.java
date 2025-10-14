@@ -1,11 +1,9 @@
 package org.rest.controller;
 
 import org.junit.jupiter.api.Test;
-import org.rest.dto.FileMetadataCreateDto;
-import org.rest.dto.FileMetadataUpdateDto;
-import org.rest.dto.FileMetadataResponseDto;
 import org.rest.exception.FileMetadataNotFoundException;
 import org.rest.exception.GlobalExceptionHandler;
+import org.rest.model.FileMetadata;
 import org.rest.service.FileMetadataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -33,10 +31,14 @@ class FileMetadataControllerTest {
 
     @Test
     void testGetFileMetadataById() throws Exception {
-        FileMetadataResponseDto responseDto =
-                new FileMetadataResponseDto(1L, "test.pdf", "Tester", "pdf", 123L, null, null);
+        FileMetadata entity = new FileMetadata();
+        entity.setId(1L);
+        entity.setFilename("test.pdf");
+        entity.setAuthor("Tester");
+        entity.setFileType("pdf");
+        entity.setSize(123L);
 
-        when(fileMetadataService.getFileMetadataById(1L)).thenReturn(responseDto);
+        when(fileMetadataService.getFileMetadataById(1L)).thenReturn(entity);
 
         mockMvc.perform(get("/api/v1/files/1"))
                 .andExpect(status().isOk())
@@ -61,11 +63,15 @@ class FileMetadataControllerTest {
 
     @Test
     void testCreateFileMetadata() throws Exception {
-        FileMetadataResponseDto responseDto =
-                new FileMetadataResponseDto(1L, "test.pdf", "Tester", "pdf", 123L, null, null);
+        FileMetadata entity = new FileMetadata();
+        entity.setId(1L);
+        entity.setFilename("test.pdf");
+        entity.setAuthor("Tester");
+        entity.setFileType("pdf");
+        entity.setSize(123L);
 
-        when(fileMetadataService.createFileMetadata(any(FileMetadataCreateDto.class)))
-                .thenReturn(responseDto);
+        when(fileMetadataService.createFileMetadata(any(FileMetadata.class)))
+                .thenReturn(entity);
 
         mockMvc.perform(post("/api/v1/files")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -88,11 +94,15 @@ class FileMetadataControllerTest {
 
     @Test
     void testUpdateFileMetadata() throws Exception {
-        FileMetadataResponseDto responseDto =
-                new FileMetadataResponseDto(1L, "updated.pdf", "Tester", "pdf", 123L, null, null);
+        FileMetadata entity = new FileMetadata();
+        entity.setId(1L);
+        entity.setFilename("updated.pdf");
+        entity.setAuthor("Tester");
+        entity.setFileType("pdf");
+        entity.setSize(123L);
 
-        when(fileMetadataService.updateFileMetadata(eq(1L), any(FileMetadataUpdateDto.class)))
-                .thenReturn(responseDto);
+        when(fileMetadataService.updateFileMetadata(eq(1L), any(FileMetadata.class)))
+                .thenReturn(entity);
 
         mockMvc.perform(patch("/api/v1/files/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -112,10 +122,14 @@ class FileMetadataControllerTest {
 
     @Test
     void testGetAllFileMetadata() throws Exception {
-        FileMetadataResponseDto responseDto =
-                new FileMetadataResponseDto(1L, "test.pdf", "Tester", "pdf", 123L, null, null);
+        FileMetadata entity = new FileMetadata();
+        entity.setId(1L);
+        entity.setFilename("test.pdf");
+        entity.setAuthor("Tester");
+        entity.setFileType("pdf");
+        entity.setSize(123L);
 
-        when(fileMetadataService.getAllFileMetadata()).thenReturn(java.util.List.of(responseDto));
+        when(fileMetadataService.getAllFileMetadata()).thenReturn(java.util.List.of(entity));
 
         mockMvc.perform(get("/api/v1/files"))
                 .andExpect(status().isOk())
