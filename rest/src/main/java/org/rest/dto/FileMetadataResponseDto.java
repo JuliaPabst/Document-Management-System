@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+//@AllArgsConstructor
 @Schema(description = "DTO for file metadata response")
 public class FileMetadataResponseDto {
     @Schema(description = "ID of the file metadata", example = "1")

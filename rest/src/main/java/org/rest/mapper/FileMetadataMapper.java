@@ -22,6 +22,10 @@ public interface FileMetadataMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "uploadTime", ignore = true)
     @Mapping(target = "lastEdited", ignore = true)
+    @Mapping(target = "filename", expression = "java(createDto.getFilename())")
+    @Mapping(target = "author", expression = "java(createDto.getAuthor())")
+    @Mapping(target = "fileType", expression = "java(createDto.getFileType())")
+    @Mapping(target = "size", expression = "java(createDto.getSize())")
     FileMetadata toEntity(FileMetadataCreateDto createDto);
 
     /**
@@ -32,19 +36,19 @@ public interface FileMetadataMapper {
     @Mapping(target = "uploadTime", ignore = true)
     @Mapping(target = "lastEdited", ignore = true)
     @Mapping(target = "filename", expression = "java(file.getOriginalFilename())")
-    @Mapping(target = "fileType", expression = "java(getFileExtension(file.getOriginalFilename()))")
+    @Mapping(target = "fileType", expression = "java(extractExtensionUpper(file.getOriginalFilename()))")
     @Mapping(target = "size", expression = "java(file.getSize())")
-    @Mapping(target = "author", source = "uploadDto.author")
+    @Mapping(target = "author", expression = "java(uploadDto.getAuthor())")
     FileMetadata toEntity(FileUploadDto uploadDto, MultipartFile file);
 
     /**
      * Helper method to extract file extension.
      */
-    default String getFileExtension(String filename) {
-        if (filename == null || !filename.contains(".")) {
-            return "unknown";
-        }
-        return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+    default String extractExtensionUpper(String filename) {
+        if (filename == null) return "UNKNOWN";
+        int idx = filename.lastIndexOf('.');
+        if (idx < 0 || idx == filename.length() - 1) return "UNKNOWN";
+        return filename.substring(idx + 1).toUpperCase();
     }
 
     /**
@@ -54,11 +58,22 @@ public interface FileMetadataMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "uploadTime", ignore = true)
     @Mapping(target = "lastEdited", ignore = true)
+    @Mapping(target = "filename", expression = "java(updateDto.getFilename())")
+    @Mapping(target = "author", expression = "java(updateDto.getAuthor())")
+    @Mapping(target = "fileType", expression = "java(updateDto.getFileType())")
+    @Mapping(target = "size", expression = "java(updateDto.getSize())")
     FileMetadata toEntity(FileMetadataUpdateDto updateDto);
 
     /**
      * Maps FileMetadata entity to FileMetadataResponseDto
      */
+    @Mapping(target = "id", expression = "java(fileMetadata.getId())")
+    @Mapping(target = "filename", expression = "java(fileMetadata.getFilename())")
+    @Mapping(target = "author", expression = "java(fileMetadata.getAuthor())")
+    @Mapping(target = "fileType", expression = "java(fileMetadata.getFileType())")
+    @Mapping(target = "size", expression = "java(fileMetadata.getSize())")
+    @Mapping(target = "uploadTime", expression = "java(fileMetadata.getUploadTime())")
+    @Mapping(target = "lastEdited", expression = "java(fileMetadata.getLastEdited())")
     FileMetadataResponseDto toResponseDto(FileMetadata fileMetadata);
 
     /**

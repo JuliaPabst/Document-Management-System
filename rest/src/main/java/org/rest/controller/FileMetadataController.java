@@ -51,7 +51,8 @@ public class FileMetadataController {
         }
 
         // Create DTO and use MapStruct to map to entity
-        FileUploadDto uploadDto = new FileUploadDto(author);
+        FileUploadDto uploadDto = new FileUploadDto();
+        uploadDto.setAuthor(author);
         FileMetadata fileMetadata = fileMetadataMapper.toEntity(uploadDto, file);
 
         // Save metadata and file (file storage logic to be implemented)

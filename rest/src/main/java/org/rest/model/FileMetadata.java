@@ -22,26 +22,26 @@ public class FileMetadata {
     private Long id;
     
     @NotBlank(message = "Filename is required")
-    @Column(nullable = false)
+    @Column(name = "filename", nullable = false)
     private String filename;
     
     @NotBlank(message = "Author is required")
-    @Column(nullable = false)
+    @Column(name = "author", nullable = false)
     private String author;
     
     @NotBlank(message = "File type is required")
-    @Column(nullable = false)
+    @Column(name = "file_type", nullable = false)
     private String fileType;
     
     @NotNull(message = "File size is required")
     @Positive(message = "File size must be positive")
-    @Column(nullable = false)
+    @Column(name = "size", nullable = false)
     private Long size;
     
-    @Column(nullable = false)
+    @Column(name = "upload_time", nullable = false)
     private LocalDateTime uploadTime;
     
-    @Column(nullable = false)
+    @Column(name = "last_edited", nullable = false)
     private LocalDateTime lastEdited;
     
     @PrePersist

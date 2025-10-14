@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+//@AllArgsConstructor
 @Schema(description = "DTO for creating file metadata")
 public class FileMetadataCreateDto {
     @Schema(description = "Filename of the document", example = "invoice.pdf")

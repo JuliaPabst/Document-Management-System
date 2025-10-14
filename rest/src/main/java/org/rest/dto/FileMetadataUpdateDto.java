@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+//@AllArgsConstructor
 @Schema(description = "DTO for updating file metadata")
 public class FileMetadataUpdateDto {
     @Schema(description = "Filename of the document", example = "updated_invoice.pdf")
