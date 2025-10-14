@@ -22,9 +22,16 @@ public class FileMetadataServiceTest {
     @InjectMocks
     private FileMetadataService fileMetadataService;
 
+    private AutoCloseable closeable;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        closeable = MockitoAnnotations.openMocks(this);
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void tearDown() throws Exception {
+        closeable.close();
     }
 
     @Test
@@ -125,7 +132,7 @@ public class FileMetadataServiceTest {
         when(fileMetadataRepository.findByOrderByUploadTimeDesc()).thenReturn(List.of(entity));
         List<FileMetadata> result = fileMetadataService.getAllFileMetadata();
         assertEquals(1, result.size());
-        assertEquals("all.pdf", result.get(0).getFilename());
+        assertEquals("all.pdf", result.getFirst().getFilename());
     }
 
     @Test
@@ -146,7 +153,7 @@ public class FileMetadataServiceTest {
         when(fileMetadataRepository.searchByKeyword("search")).thenReturn(List.of(entity));
         List<FileMetadata> result = fileMetadataService.searchFileMetadata("search");
         assertEquals(1, result.size());
-        assertEquals("search.pdf", result.get(0).getFilename());
+        assertEquals("search.pdf", result.getFirst().getFilename());
     }
 
     @Test
@@ -160,7 +167,7 @@ public class FileMetadataServiceTest {
         when(fileMetadataRepository.findByAuthor("Alice")).thenReturn(List.of(entity));
         List<FileMetadata> result = fileMetadataService.getFileMetadataByAuthor("Alice");
         assertEquals(1, result.size());
-        assertEquals("Alice", result.get(0).getAuthor());
+        assertEquals("Alice", result.getFirst().getAuthor());
     }
 
     @Test
@@ -174,6 +181,6 @@ public class FileMetadataServiceTest {
         when(fileMetadataRepository.findByFileType("pdf")).thenReturn(List.of(entity));
         List<FileMetadata> result = fileMetadataService.getFileMetadataByFileType("pdf");
         assertEquals(1, result.size());
-        assertEquals("pdf", result.get(0).getFileType());
+        assertEquals("pdf", result.getFirst().getFileType());
     }
 }

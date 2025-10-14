@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long> {
@@ -15,8 +14,6 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long
     List<FileMetadata> findByAuthor(String author);
     
     List<FileMetadata> findByFileType(String fileType);
-    
-    Optional<FileMetadata> findByFilename(String filename);
     
     @Query("SELECT f FROM FileMetadata f WHERE f.filename LIKE %:keyword% OR f.author LIKE %:keyword%")
     List<FileMetadata> searchByKeyword(@Param("keyword") String keyword);

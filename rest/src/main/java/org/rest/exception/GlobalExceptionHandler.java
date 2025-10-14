@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         String firstError = ex.getBindingResult().getAllErrors().stream()
-                .findFirst().map(err -> err.getDefaultMessage()).orElse("Validation failed");
+                .findFirst().map(org.springframework.validation.ObjectError::getDefaultMessage).orElse("Validation failed");
         var body = ErrorResponse.builder()
                 .timestamp(OffsetDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -89,11 +89,12 @@ public class GlobalExceptionHandler {
     // 413 Payload too large
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse> handleMaxUpload(MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        String message = ex.getMessage() != null ? ex.getMessage() : "Maximum upload size exceeded";
         var body = ErrorResponse.builder()
                 .timestamp(OffsetDateTime.now())
                 .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
                 .error("Payload Too Large")
-                .message("Maximum upload size exceeded")
+                .message(message)
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(body);

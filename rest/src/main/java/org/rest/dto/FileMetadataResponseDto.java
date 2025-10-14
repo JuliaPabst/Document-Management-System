@@ -1,6 +1,5 @@
 package org.rest.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -9,7 +8,6 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-//@AllArgsConstructor
 @Schema(description = "DTO for file metadata response")
 public class FileMetadataResponseDto {
     @Schema(description = "ID of the file metadata", example = "1")
@@ -21,7 +19,7 @@ public class FileMetadataResponseDto {
     @Schema(description = "Author of the document", example = "John Doe")
     private String author;
 
-    @Schema(description = "Type of the file", example = "pdf")
+    @Schema(description = "Type of the file", example = "PDF")
     private String fileType;
 
     @Schema(description = "Size of the file in bytes", example = "1024")

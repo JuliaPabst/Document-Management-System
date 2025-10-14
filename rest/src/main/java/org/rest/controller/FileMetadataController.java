@@ -19,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -41,7 +40,7 @@ public class FileMetadataController {
     })
     public ResponseEntity<FileMetadataResponseDto> uploadFile(
             @Parameter(description = "File to upload") @RequestParam("file") MultipartFile file,
-            @Parameter(description = "Author of the document") @RequestParam("author") String author) throws IOException {
+            @Parameter(description = "Author of the document") @RequestParam("author") String author) {
 
         log.info("Received request to upload file: {} by author: {}", file.getOriginalFilename(), author);
 

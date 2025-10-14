@@ -3,7 +3,6 @@ package org.rest.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import org.rest.dto.FileMetadataCreateDto;
 import org.rest.dto.FileMetadataResponseDto;
 import org.rest.dto.FileMetadataUpdateDto;
 import org.rest.dto.FileUploadDto;
@@ -14,19 +13,6 @@ import java.util.List;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface FileMetadataMapper {
-
-    /**
-     * Maps FileMetadataCreateDto to FileMetadata entity.
-     * The id, uploadTime, and lastEdited fields are set automatically by JPA.
-     */
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "uploadTime", ignore = true)
-    @Mapping(target = "lastEdited", ignore = true)
-    @Mapping(target = "filename", expression = "java(createDto.getFilename())")
-    @Mapping(target = "author", expression = "java(createDto.getAuthor())")
-    @Mapping(target = "fileType", expression = "java(createDto.getFileType())")
-    @Mapping(target = "size", expression = "java(createDto.getSize())")
-    FileMetadata toEntity(FileMetadataCreateDto createDto);
 
     /**
      * Maps file upload information to FileMetadata entity.
