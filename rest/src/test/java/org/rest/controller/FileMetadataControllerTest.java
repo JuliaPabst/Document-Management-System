@@ -161,25 +161,23 @@ class FileMetadataControllerTest {
     }
 
     @Test
-    void testUpdateFileMetadata() throws Exception {
+    void testUpdateFileMetadata_WithFileAndAuthor() throws Exception {
         // given
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "updated.pdf", "application/pdf", "updated content".getBytes()
+        );
         LocalDateTime now = LocalDateTime.now();
-        FileMetadata updates = new FileMetadata();
-        updates.setFilename("updated.pdf");
-        updates.setAuthor("Tester");
-        updates.setFileType("PDF");
-        updates.setSize(123L);
 
         FileMetadata updated = new FileMetadata();
         updated.setId(1L);
         updated.setFilename("updated.pdf");
-        updated.setAuthor("Tester");
+        updated.setAuthor("Updated Author");
         updated.setFileType("PDF");
-        updated.setSize(123L);
+        updated.setSize((long) "updated content".getBytes().length);
         updated.setUploadTime(now);
         updated.setLastEdited(now);
 
-        when(fileMetadataMapper.toEntity(any(org.rest.dto.FileMetadataUpdateDto.class))).thenReturn(updates);
+        when(fileMetadataMapper.extractExtensionUpper("updated.pdf")).thenReturn("PDF");
         when(fileMetadataService.updateFileMetadata(eq(1L), any(FileMetadata.class))).thenReturn(updated);
         when(fileMetadataMapper.toResponseDto(any(FileMetadata.class))).thenAnswer(inv -> {
             FileMetadata fm = inv.getArgument(0);
@@ -194,11 +192,63 @@ class FileMetadataControllerTest {
             return dto;
         });
 
-        mockMvc.perform(patch("/api/v1/files/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"filename\":\"updated.pdf\",\"author\":\"Tester\",\"fileType\":\"pdf\",\"size\":123}"))
+        mockMvc.perform(
+                        multipart("/api/v1/files/1")
+                                .file(file)
+                                .param("author", "Updated Author")
+                                .with(request -> {
+                                    request.setMethod("PATCH");
+                                    return request;
+                                })
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.filename").value("updated.pdf"));
+                .andExpect(jsonPath("$.filename").value("updated.pdf"))
+                .andExpect(jsonPath("$.author").value("Updated Author"))
+                .andExpect(jsonPath("$.fileType").value("PDF"));
+    }
+
+    @Test
+    void testUpdateFileMetadata_OnlyAuthor() throws Exception {
+        // given - update only author, no file
+        LocalDateTime now = LocalDateTime.now();
+
+        FileMetadata updated = new FileMetadata();
+        updated.setId(1L);
+        updated.setFilename("original.pdf");
+        updated.setAuthor("New Author");
+        updated.setFileType("PDF");
+        updated.setSize(1024L);
+        updated.setUploadTime(now);
+        updated.setLastEdited(now);
+
+        when(fileMetadataService.updateFileMetadata(eq(1L), any(FileMetadata.class))).thenReturn(updated);
+        when(fileMetadataMapper.toResponseDto(any(FileMetadata.class))).thenAnswer(inv -> {
+            FileMetadata fm = inv.getArgument(0);
+            var dto = new org.rest.dto.FileMetadataResponseDto();
+            dto.setId(fm.getId());
+            dto.setFilename(fm.getFilename());
+            dto.setAuthor(fm.getAuthor());
+            dto.setFileType(fm.getFileType());
+            dto.setSize(fm.getSize());
+            dto.setUploadTime(fm.getUploadTime());
+            dto.setLastEdited(fm.getLastEdited());
+            return dto;
+        });
+
+        mockMvc.perform(
+                        multipart("/api/v1/files/1")
+                                .param("author", "New Author")
+                                .with(request -> {
+                                    request.setMethod("PATCH");
+                                    return request;
+                                })
+                                .contentType(MediaType.MULTIPART_FORM_DATA)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.author").value("New Author"));
     }
 
     @Test

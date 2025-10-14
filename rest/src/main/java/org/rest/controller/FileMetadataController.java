@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.rest.dto.FileMetadataResponseDto;
-import org.rest.dto.FileMetadataUpdateDto;
 import org.rest.dto.FileUploadDto;
 import org.rest.mapper.FileMetadataMapper;
 import org.rest.model.FileMetadata;
@@ -110,8 +109,8 @@ public class FileMetadataController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/{id}")
-    @Operation(summary = "Update file metadata", description = "Partially update file metadata")
+    @PatchMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Update file metadata", description = "Partially update file metadata and optionally replace the file")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "File metadata updated successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input data"),
@@ -120,10 +119,26 @@ public class FileMetadataController {
     })
     public ResponseEntity<FileMetadataResponseDto> updateFileMetadata(
             @Parameter(description = "File metadata ID") @PathVariable Long id,
-            @RequestBody FileMetadataUpdateDto updateDto) {
+            @Parameter(description = "New file to replace existing one (optional)") @RequestParam(value = "file", required = false) MultipartFile file,
+            @Parameter(description = "Author of the document (optional)") @RequestParam(value = "author", required = false) String author) {
         log.info("Received request to update file metadata with ID: {}", id);
 
-        FileMetadata updates = fileMetadataMapper.toEntity(updateDto);
+        FileMetadata updates = new FileMetadata();
+        
+        // If a new file is uploaded, extract metadata from it
+        if (file != null && !file.isEmpty()) {
+            log.info("Replacing file with new upload: {}", file.getOriginalFilename());
+            updates.setFilename(file.getOriginalFilename());
+            updates.setFileType(fileMetadataMapper.extractExtensionUpper(file.getOriginalFilename()));
+            updates.setSize(file.getSize());
+            // TODO: Store the actual file bytes (file.getBytes()) to replace the old file
+        }
+        
+        // Update author if provided
+        if (author != null && !author.trim().isEmpty()) {
+            updates.setAuthor(author.trim());
+        }
+        
         FileMetadata updatedMetadata = fileMetadataService.updateFileMetadata(id, updates);
         FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(updatedMetadata);
         return ResponseEntity.ok(response);

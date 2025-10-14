@@ -4,7 +4,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.rest.dto.FileMetadataResponseDto;
-import org.rest.dto.FileMetadataUpdateDto;
 import org.rest.dto.FileUploadDto;
 import org.rest.model.FileMetadata;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,19 +35,6 @@ public interface FileMetadataMapper {
         if (idx < 0 || idx == filename.length() - 1) return "UNKNOWN";
         return filename.substring(idx + 1).toUpperCase();
     }
-
-    /**
-     * Maps FileMetadataUpdateDto to FileMetadata entity.
-     * The id, uploadTime, and lastEdited fields are handled separately in the service.
-     */
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "uploadTime", ignore = true)
-    @Mapping(target = "lastEdited", ignore = true)
-    @Mapping(target = "filename", expression = "java(updateDto.getFilename())")
-    @Mapping(target = "author", expression = "java(updateDto.getAuthor())")
-    @Mapping(target = "fileType", expression = "java(updateDto.getFileType())")
-    @Mapping(target = "size", expression = "java(updateDto.getSize())")
-    FileMetadata toEntity(FileMetadataUpdateDto updateDto);
 
     /**
      * Maps FileMetadata entity to FileMetadataResponseDto

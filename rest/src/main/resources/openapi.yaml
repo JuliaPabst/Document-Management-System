@@ -235,7 +235,7 @@ paths:
       tags:
         - File Metadata Management
       summary: Update file metadata
-      description: Partially update file metadata
+      description: Partially update file metadata and optionally replace the file
       operationId: updateFileMetadata
       parameters:
         - name: id
@@ -247,21 +247,20 @@ paths:
             format: int64
           example: 1
       requestBody:
-        required: true
+        required: false
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FileMetadataUpdateDto'
-            examples:
-              partialUpdate:
-                summary: Update Author and Size
-                value:
-                  author: "John Smith"
-                  size: 1048576
-              renameFile:
-                summary: Rename File
-                value:
-                  filename: "updated_document.pdf"
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: New file to replace existing one (optional)
+                author:
+                  type: string
+                  description: Author of the document (optional)
+                  example: "John Smith"
       responses:
         '200':
           description: File metadata updated successfully
@@ -286,6 +285,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validationError:
+                  summary: Validation Error
+                  value:
+                    timestamp: "2025-10-08T15:30:00"
+                    status: 400
+                    error: "Bad Request"
+                    message: "Invalid input data"
+                    path: "/api/v1/files/1"
         '404':
           description: File metadata not found
           content:
@@ -368,70 +376,6 @@ paths:
 
 components:
   schemas:
-    FileMetadataCreateDto:
-      type: object
-      required:
-        - filename
-        - author
-        - fileType
-        - size
-      properties:
-        filename:
-          type: string
-          description: Name of the file
-          example: "document.pdf"
-          minLength: 1
-        author:
-          type: string
-          description: Author of the file
-          example: "John Doe"
-          minLength: 1
-        fileType:
-          type: string
-          description: Type/format of the file
-          example: "PDF"
-          minLength: 1
-        size:
-          type: integer
-          format: int64
-          description: Size of the file in bytes
-          example: 1024000
-          minimum: 1
-      example:
-        filename: "document.pdf"
-        author: "John Doe"
-        fileType: "PDF"
-        size: 1024000
-
-    FileMetadataUpdateDto:
-      type: object
-      properties:
-        filename:
-          type: string
-          description: Name of the file
-          example: "updated_document.pdf"
-          nullable: true
-        author:
-          type: string
-          description: Author of the file
-          example: "John Smith"
-          nullable: true
-        fileType:
-          type: string
-          description: Type/format of the file
-          example: "PDF"
-          nullable: true
-        size:
-          type: integer
-          format: int64
-          description: Size of the file in bytes
-          example: 1048576
-          minimum: 1
-          nullable: true
-      example:
-        filename: "updated_document.pdf"
-        author: "John Smith"
-
     FileMetadataResponseDto:
       type: object
       properties:
