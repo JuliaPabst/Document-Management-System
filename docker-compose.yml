@@ -23,7 +23,7 @@ services:
     volumes:
       - ./db/pgadmin-servers.json:/pgadmin4/servers.json
 
-  demo:
+  rest:
     build:
       context: rest
       dockerfile: Dockerfile
