@@ -17,17 +17,6 @@ This project follows the **MVVM (Model-View-ViewModel)** pattern:
 - **ViewModel** (`/viewmodels/*`): Hooks that encapsulate business logic and state
 - **View** (`/components/*`, `/app/*`): Presentational components
 
-## Running in v0 Preview
-
-The app automatically runs in **mock mode** when `NEXT_PUBLIC_API_BASE_URL` is not set. This allows you to preview and test the UI without a backend.
-
-### Mock Mode
-
-When running without an API:
-- Uses sample data from `/mocks/documents.ts`
-- Simulates API delays for realistic UX
-- All CRUD operations work in-memory
-
 ### Connecting to Real API
 
 To connect to the Paperless REST API:
