@@ -7,7 +7,7 @@ A modern document management system built with Next.js, TypeScript, and the MVVM
 - **Upload Documents**: Drag & drop interface with progress tracking
 - **Search & Filter**: Full-text search with filters for author, file type, and date
 - **Document Management**: View, edit metadata, and manage documents
-- **Mock Mode**: Runs without backend API for development and preview
+- **Responsive Design**: Modern UI built with shadcn/ui components
 
 ## Architecture
 
@@ -17,61 +17,55 @@ This project follows the **MVVM (Model-View-ViewModel)** pattern:
 - **ViewModel** (`/viewmodels/*`): Hooks that encapsulate business logic and state
 - **View** (`/components/*`, `/app/*`): Presentational components
 
-### Connecting to Real API
+### Connecting to the API
 
-To connect to the Paperless REST API:
+The application requires a connection to the backend REST API. When running with Docker Compose, the API connection is configured automatically through nginx reverse proxy.
 
-1. Set the environment variable:
-   ```bash
-   NEXT_PUBLIC_API_BASE_URL=http://localhost:8081
-   ```
+For standalone development, set the environment variable:
+```bash
+NEXT_PUBLIC_API_BASE_URL=/api
+```
 
-2. The app will automatically switch to REST mode and use the real API
+The application will connect to the REST API and use real data.
 
 ## Project Structure
 
 ```
-/app                    # Next.js App Router pages
-  /page.tsx            # Dashboard
-  /search/page.tsx     # Search page
-  /upload/page.tsx     # Upload page
+/app                        # Next.js App Router pages
+  /page.tsx                 # Dashboard
+  /search/page.tsx          # Search page
+  /upload/page.tsx          # Upload page
   /documents/[id]/page.tsx  # Document detail
 
-/components            # Presentational components
+/components                 # Presentational components
   /upload-dropzone.tsx
   /search-bar.tsx
   /document-card.tsx
   /document-list.tsx
   ...
 
-/viewmodels           # Business logic hooks
+/viewmodels                 # Business logic hooks
   /use-upload-vm.ts
   /use-search-vm.ts
   /use-document-vm.ts
 
-/api                  # API client layer
-  /client.ts         # REST and Mock adapters
+/api                        # API client layer
+  /client.ts                # REST adapter
 
-/mocks               # Mock data for preview
-  /documents.ts
-
-/lib                 # Utilities
-  /types.ts         # TypeScript types
-  /http.ts          # HTTP client
-  /utils/           # Helper functions
+/lib                        # Utilities
+  /types.ts                 # TypeScript types
+  /http.ts                  # HTTP client
+  /utils/                   # Helper functions
 ```
 
 ## API Integration
 
-The API client (`/api/client.ts`) uses an adapter pattern:
+The API client (`/api/client.ts`) uses the RestAdapter pattern to connect to the backend REST API. All HTTP requests are handled through the `HttpClient` wrapper with proper error handling.
 
-- **RestAdapter**: Connects to real Paperless API
-- **MockAdapter**: In-memory mock for development
-
-To add OpenAPI-generated types later:
-1. Generate types from `openapi.yaml`
+To add OpenAPI-generated types:
+1. Generate types from `openapi.yaml` in the REST service
 2. Replace types in `/lib/types.ts`
-3. Update adapters if needed
+3. Update the adapter if needed
 
 ## Tech Stack
 
@@ -85,19 +79,38 @@ To add OpenAPI-generated types later:
 ## Development
 
 ```bash
-# Install dependencies
-npm install
+# Install dependencies (using pnpm)
+pnpm install
 
 # Run development server
-npm run dev
+pnpm dev
 
 # Build for production
-npm run build
+pnpm build
+
+# Start production server
+pnpm start
 ```
+
+## Running with Docker Compose
+
+The recommended way to run the application is using Docker Compose from the project root:
+
+```bash
+docker compose up
+```
+
+This will start:
+- PostgreSQL database
+- REST API backend
+- Web UI (this application)
+- Nginx reverse proxy
+
+Access the application at: http://localhost:8080
 
 ## Environment Variables
 
-- `NEXT_PUBLIC_API_BASE_URL`: Base URL for Paperless API (optional, defaults to mock mode)
+- `NEXT_PUBLIC_API_BASE_URL`: Base URL for the REST API (required, default: `/api`)
 
 ## License
 
