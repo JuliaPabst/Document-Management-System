@@ -22,15 +22,15 @@ This project follows the **MVVM (Model-View-ViewModel)** pattern:
 To connect to the Paperless REST API:
 
 1. Set the environment variable:
-   \`\`\`
+   ```bash
    NEXT_PUBLIC_API_BASE_URL=http://localhost:8081
-   \`\`\`
+   ```
 
 2. The app will automatically switch to REST mode and use the real API
 
 ## Project Structure
 
-\`\`\`
+```
 /app                    # Next.js App Router pages
   /page.tsx            # Dashboard
   /search/page.tsx     # Search page
@@ -59,7 +59,7 @@ To connect to the Paperless REST API:
   /types.ts         # TypeScript types
   /http.ts          # HTTP client
   /utils/           # Helper functions
-\`\`\`
+```
 
 ## API Integration
 
@@ -84,7 +84,7 @@ To add OpenAPI-generated types later:
 
 ## Development
 
-\`\`\`bash
+```bash
 # Install dependencies
 npm install
 
@@ -93,7 +93,7 @@ npm run dev
 
 # Build for production
 npm run build
-\`\`\`
+```
 
 ## Environment Variables
 
