@@ -2,7 +2,6 @@ import type React from "react"
 import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
-import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import Link from "next/link"
 import { FileText, Search, Upload, LayoutDashboard } from "lucide-react"
@@ -57,8 +56,6 @@ export default function RootLayout({
         </Suspense>
 
         <main className="min-h-[calc(100vh-4rem)]">{children}</main>
-
-        <Analytics />
       </body>
     </html>
   )
