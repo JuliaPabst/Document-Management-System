@@ -14,7 +14,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -45,7 +45,7 @@ class FileMetadataControllerTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "new.pdf", "application/pdf", "dummy".getBytes()
         );
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         FileMetadata mapped = new FileMetadata();
         mapped.setFilename("new.pdf");
@@ -115,7 +115,7 @@ class FileMetadataControllerTest {
 
     @Test
     void testGetFileMetadataById() throws Exception {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         FileMetadata entity = new FileMetadata();
         entity.setId(1L);
         entity.setFilename("test.pdf");
@@ -166,7 +166,7 @@ class FileMetadataControllerTest {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "updated.pdf", "application/pdf", "updated content".getBytes()
         );
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         FileMetadata updated = new FileMetadata();
         updated.setId(1L);
@@ -212,7 +212,7 @@ class FileMetadataControllerTest {
     @Test
     void testUpdateFileMetadata_OnlyAuthor() throws Exception {
         // given - update only author, no file
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         FileMetadata updated = new FileMetadata();
         updated.setId(1L);
@@ -262,7 +262,7 @@ class FileMetadataControllerTest {
 
     @Test
     void testGetAllFileMetadata() throws Exception {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         FileMetadata entity = new FileMetadata();
         entity.setId(1L);
