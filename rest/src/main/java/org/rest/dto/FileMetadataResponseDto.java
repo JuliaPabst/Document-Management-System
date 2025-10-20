@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -25,9 +25,9 @@ public class FileMetadataResponseDto {
     @Schema(description = "Size of the file in bytes", example = "1024")
     private Long size;
 
-    @Schema(description = "Upload time of the file", example = "2024-06-01T12:00:00")
-    private LocalDateTime uploadTime;
+    @Schema(description = "Upload time of the file", example = "2024-06-01T12:00:00Z")
+    private Instant uploadTime;
 
-    @Schema(description = "Last edited time of the file", example = "2024-06-02T15:30:00")
-    private LocalDateTime lastEdited;
+    @Schema(description = "Last edited time of the file", example = "2024-06-02T15:30:00Z")
+    private Instant lastEdited;
 }
