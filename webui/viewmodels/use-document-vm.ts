@@ -16,15 +16,17 @@ export function useDocumentVM(id: number) {
   const document = optimisticData || data
 
   const updateMetadata = useCallback(
-    async (updates: { author?: string }) => {
+    async (updates: { author?: string; file?: File }) => {
       if (!data) return
 
-      const optimistic: FileMetadata = {
-        ...data,
-        ...updates,
-        lastEdited: new Date().toISOString(),
+      if (updates.author && !updates.file) {
+        const optimistic: FileMetadata = {
+          ...data,
+          author: updates.author,
+          lastEdited: new Date().toISOString(),
+        }
+        setOptimisticData(optimistic)
       }
-      setOptimisticData(optimistic)
 
       try {
         const updated = await apiClient.updateFile(id, updates)
