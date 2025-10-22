@@ -105,6 +105,7 @@ This will start:
 - REST API backend
 - Web UI (this application)
 - Nginx reverse proxy
+- Lucide SVG icon components
 
 Access the application at: http://localhost:8080
 
