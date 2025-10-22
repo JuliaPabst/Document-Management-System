@@ -7,7 +7,7 @@ A modern document management system built with Next.js, TypeScript, and the MVVM
 - **Upload Documents**: Drag & drop interface with progress tracking
 - **Search & Filter**: Full-text search with filters for author, file type, and date
 - **Document Management**: View, edit metadata, and manage documents
-- **Responsive Design**: Modern UI built with shadcn/ui components
+- **Responsive Design**: Modern UI built with radix/ui components
 
 ## Architecture
 
@@ -73,8 +73,8 @@ To add OpenAPI-generated types:
 - **React 18**
 - **TypeScript**
 - **Tailwind CSS v4**
-- **shadcn/ui** components
-- **SWR** for data fetching
+- **radix-ui** components
+- **axios** for data fetching
 
 ## Development
 
@@ -111,7 +111,3 @@ Access the application at: http://localhost:8080
 ## Environment Variables
 
 - `NEXT_PUBLIC_API_BASE_URL`: Base URL for the REST API (required, default: `/api`)
-
-## License
-
-MIT
