@@ -46,57 +46,59 @@ export function UploadForm() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload Document</CardTitle>
-          <CardDescription>Upload a new document to the paperless system</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <UploadDropzone onFileSelect={handleFileSelect} uploadProgress={uploadProgress} disabled={isUploading} />
+      {!(isSuccess && uploadedFile) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Upload Document</CardTitle>
+            <CardDescription>Upload a new document to the paperless system</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <UploadDropzone onFileSelect={handleFileSelect} uploadProgress={uploadProgress} disabled={isUploading} />
 
-          {selectedFile && !isSuccess && (
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-4">
-              <FileText className="h-8 w-8 text-muted-foreground" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{selectedFile.name}</p>
-                <p className="text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
+            {selectedFile && !isSuccess && (
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 p-4">
+                <FileText className="h-8 w-8 text-muted-foreground" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{selectedFile.name}</p>
+                  <p className="text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="author">Author Name</Label>
-              <Input
-                id="author"
-                type="text"
-                placeholder="Enter your name"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                disabled={isUploading}
-                required
-              />
-            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="author">Author Name</Label>
+                <Input
+                  id="author"
+                  type="text"
+                  placeholder="Enter your name"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  disabled={isUploading}
+                  required
+                />
+              </div>
 
-            <div className="flex gap-3">
-              <Button type="submit" disabled={!selectedFile || !author.trim() || isUploading} className="flex-1">
-                {isUploading ? "Uploading..." : "Upload Document"}
-              </Button>
-              {(selectedFile || uploadProgress.status !== "idle") && (
-                <Button type="button" variant="outline" onClick={handleReset} disabled={isUploading}>
-                  Reset
+              <div className="flex gap-3">
+                <Button type="submit" disabled={!selectedFile || !author.trim() || isUploading} className="flex-1">
+                  {isUploading ? "Uploading..." : "Upload Document"}
                 </Button>
-              )}
-            </div>
-          </form>
+                {(selectedFile || uploadProgress.status !== "idle") && (
+                  <Button type="button" variant="outline" onClick={handleReset} disabled={isUploading}>
+                    Reset
+                  </Button>
+                )}
+              </div>
+            </form>
 
-          {error && (
-            <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
-              <p className="text-sm text-destructive">{error}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            {error && (
+              <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {uploadProgress.status !== "idle" && (
         <Card>
