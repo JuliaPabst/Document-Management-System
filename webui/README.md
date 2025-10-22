@@ -8,6 +8,9 @@ A modern document management system built with Next.js, TypeScript, and the MVVM
 - **Search & Filter**: Full-text search with filters for author, file type, and date
 - **Document Management**: View, edit metadata, and manage documents
 - **Responsive Design**: Modern UI built with radix/ui components
+- **Unique File Validation**: Prevents duplicate files with same name and author
+  - If a file with the same name from the same author already exists, the REST server returns an error
+  - Frontend detects the error and provides user feedback: option to replace the existing file or select a new file
 
 ## Architecture
 

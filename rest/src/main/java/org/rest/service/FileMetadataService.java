@@ -2,6 +2,7 @@ package org.rest.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.rest.exception.DuplicateFileException;
 import org.rest.exception.FileMetadataNotFoundException;
 import org.rest.model.FileMetadata;
 import org.rest.repository.FileMetadataRepository;
@@ -19,7 +20,18 @@ public class FileMetadataService {
     private final FileMetadataRepository fileMetadataRepository;
     
     public FileMetadata createFileMetadata(FileMetadata fileMetadata) {
-        log.info("Creating file metadata for filename: {}", fileMetadata.getFilename());
+        log.info("Creating file metadata for filename: {} by author: {}", 
+                fileMetadata.getFilename(), fileMetadata.getAuthor());
+        
+        // Check for duplicate file with same name and author
+        if (fileMetadataRepository.existsByFilenameAndAuthor(
+                fileMetadata.getFilename(), fileMetadata.getAuthor())) {
+            log.warn("Duplicate file detected: {} by author: {}", 
+                    fileMetadata.getFilename(), fileMetadata.getAuthor());
+            throw new DuplicateFileException(
+                    String.format("File with name '%s' already exists for author '%s'", 
+                            fileMetadata.getFilename(), fileMetadata.getAuthor()));
+        }
         
         FileMetadata savedMetadata = fileMetadataRepository.save(fileMetadata);
         log.info("File metadata created with ID: {}", savedMetadata.getId());

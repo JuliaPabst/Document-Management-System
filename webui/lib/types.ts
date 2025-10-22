@@ -42,3 +42,9 @@ export interface UploadProgress {
   progress: number
   message?: string
 }
+
+export interface DuplicateFileInfo {
+  existingFileId: number
+  filename: string
+  author: string
+}

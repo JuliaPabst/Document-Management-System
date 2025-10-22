@@ -2,24 +2,46 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { UploadDropzone } from "@/components/upload-dropzone"
 import { UploadStatusTimeline } from "@/components/upload-status-timeline"
 import { useUploadVM } from "@/viewmodels/use-upload-vm"
 import { formatFileSize } from "@/lib/utils/format"
-import { FileText } from "lucide-react"
+import { FileText, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 
 export function UploadForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [author, setAuthor] = useState("")
-  const { uploadProgress, uploadedFile, error, uploadFile, reset } = useUploadVM()
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
+  const [lastRejectedFile, setLastRejectedFile] = useState<{ filename: string; author: string } | null>(null)
+  const { uploadProgress, uploadedFile, error, duplicateInfo, uploadFile, replaceFile, reset } = useUploadVM()
 
   const handleFileSelect = (file: File) => {
+    // Check if this is the same file that was previously rejected as duplicate
+    if (lastRejectedFile && 
+        file.name === lastRejectedFile.filename && 
+        author === lastRejectedFile.author) {
+      // Show the duplicate dialog again
+      setShowDuplicateDialog(true)
+      setSelectedFile(file)
+      return
+    }
+    
     setSelectedFile(file)
     reset()
   }
@@ -35,9 +57,41 @@ export function UploadForm() {
     }
   }
 
+  // Watch for duplicate info changes and show dialog
+  useEffect(() => {
+    if (duplicateInfo) {
+      setShowDuplicateDialog(true)
+      // Store the rejected file info
+      setLastRejectedFile({
+        filename: duplicateInfo.filename,
+        author: duplicateInfo.author,
+      })
+    }
+  }, [duplicateInfo])
+
+  const handleReplaceFile = async () => {
+    if (!selectedFile || !author.trim() || !duplicateInfo) return
+
+    setShowDuplicateDialog(false)
+    setLastRejectedFile(null) // Clear rejected file since we're replacing it
+    try {
+      await replaceFile(selectedFile, author.trim(), duplicateInfo.existingFileId)
+    } catch (err) {
+      // Error is handled in the view model
+    }
+  }
+
+  const handleSelectNewFile = () => {
+    setShowDuplicateDialog(false)
+    setSelectedFile(null)
+    reset()
+    // Keep lastRejectedFile so we can detect if user tries to select it again
+  }
+
   const handleReset = () => {
     setSelectedFile(null)
     setAuthor("")
+    setLastRejectedFile(null)
     reset()
   }
 
@@ -91,7 +145,7 @@ export function UploadForm() {
               </div>
             </form>
 
-            {error && (
+            {error && !duplicateInfo && (
               <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
                 <p className="text-sm text-destructive">{error}</p>
               </div>
@@ -99,6 +153,29 @@ export function UploadForm() {
           </CardContent>
         </Card>
       )}
+
+      {/* Duplicate File Dialog */}
+      <AlertDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Duplicate File Detected
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                A file with the name <strong>{duplicateInfo?.filename}</strong> already exists for author{" "}
+                <strong>{duplicateInfo?.author}</strong>.
+              </p>
+              <p>Would you like to replace the existing file or select a new file?</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleSelectNewFile}>Select New File</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReplaceFile}>Replace Existing File</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {uploadProgress.status !== "idle" && (
         <Card>

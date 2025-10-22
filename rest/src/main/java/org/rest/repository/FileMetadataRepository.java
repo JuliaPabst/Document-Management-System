@@ -21,4 +21,9 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long
     List<FileMetadata> searchByKeyword(@Param("keyword") String keyword);
     
     List<FileMetadata> findByOrderByUploadTimeDesc();
+    
+    @Query("SELECT f FROM FileMetadata f WHERE f.filename = :filename AND f.author = :author")
+    List<FileMetadata> findByFilenameAndAuthor(@Param("filename") String filename, @Param("author") String author);
+    
+    boolean existsByFilenameAndAuthor(String filename, String author);
 }

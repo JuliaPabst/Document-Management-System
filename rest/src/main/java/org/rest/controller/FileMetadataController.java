@@ -35,6 +35,7 @@ public class FileMetadataController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "File uploaded successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input data or file"),
+            @ApiResponse(responseCode = "409", description = "File with same name already exists for this author"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<FileMetadataResponseDto> uploadFile(

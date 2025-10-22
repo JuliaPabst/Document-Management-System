@@ -1,4 +1,17 @@
 import axios, { AxiosInstance, AxiosError } from 'axios'
+import type { ErrorResponse } from './types'
+
+export class ApiError extends Error {
+  status: number
+  details?: ErrorResponse
+
+  constructor(message: string, status: number, details?: ErrorResponse) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.details = details
+  }
+}
 
 export class HttpClient {
   private client: AxiosInstance
@@ -14,11 +27,13 @@ export class HttpClient {
     // Add response interceptor for error handling
     this.client.interceptors.response.use(
       (response) => response,
-      (error: AxiosError) => {
-        const message = error.response 
-          ? `HTTP ${error.response.status}: ${error.response.statusText}`
-          : error.message
-        throw new Error(message)
+      (error: AxiosError<ErrorResponse>) => {
+        if (error.response) {
+          const errorData = error.response.data
+          const message = errorData?.message || error.response.statusText
+          throw new ApiError(message, error.response.status, errorData)
+        }
+        throw new Error(error.message)
       }
     )
   }
