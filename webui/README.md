@@ -11,6 +11,12 @@ A modern document management system built with Next.js, TypeScript, and the MVVM
 - **Unique File Validation**: Prevents duplicate files with same name and author
   - If a file with the same name from the same author already exists, the REST server returns an error
   - Frontend detects the error and provides user feedback: option to replace the existing file or select a new file
+- **AI Chat Assistant**: Chat with ChatGPT about your documents
+  - Ask questions about your document collection
+  - Search for files using natural language
+  - Get statistics and insights about your documents
+  - AI has access to all file metadata as context
+  - See [CHAT_FEATURE.md](./CHAT_FEATURE.md) for setup instructions
 
 ## Architecture
 

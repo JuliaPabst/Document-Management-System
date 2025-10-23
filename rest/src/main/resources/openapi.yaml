@@ -16,6 +16,8 @@ servers:
 tags:
   - name: File Metadata Management
     description: API for managing file metadata in the paperless document system
+  - name: Chat Message Management
+    description: API for managing chat conversation history
 
 paths:
   /api/v1/files:
@@ -374,6 +376,129 @@ paths:
                     message: "An unexpected error occurred"
                     path: "/api/v1/files/999"
 
+  /api/v1/chat-messages:
+    post:
+      tags:
+        - Chat Message Management
+      summary: Save chat message
+      description: Save a chat message to the database
+      operationId: saveChatMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatMessageRequestDto'
+            examples:
+              userMessage:
+                summary: User Message
+                value:
+                  role: "user"
+                  content: "How many documents do I have?"
+                  sessionId: "session-123-abc"
+              assistantMessage:
+                summary: Assistant Message
+                value:
+                  role: "assistant"
+                  content: "You currently have 42 documents in your system."
+                  sessionId: "session-123-abc"
+      responses:
+        '201':
+          description: Chat message saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessageResponseDto'
+              examples:
+                savedMessage:
+                  summary: Saved Message
+                  value:
+                    id: 1
+                    role: "user"
+                    content: "How many documents do I have?"
+                    sessionId: "session-123-abc"
+                    timestamp: "2025-10-23T10:30:00Z"
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - Chat Message Management
+      summary: Get chat messages
+      description: Retrieve all chat messages or filter by session ID
+      operationId: getAllChatMessages
+      parameters:
+        - name: sessionId
+          in: query
+          description: Filter by session ID (optional)
+          required: false
+          schema:
+            type: string
+          example: "session-123-abc"
+      responses:
+        '200':
+          description: Chat messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatMessageResponseDto'
+              examples:
+                conversation:
+                  summary: Chat Conversation
+                  value:
+                    - id: 1
+                      role: "user"
+                      content: "How many documents do I have?"
+                      sessionId: "session-123-abc"
+                      timestamp: "2025-10-23T10:30:00Z"
+                    - id: 2
+                      role: "assistant"
+                      content: "You currently have 42 documents in your system."
+                      sessionId: "session-123-abc"
+                      timestamp: "2025-10-23T10:30:05Z"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Chat Message Management
+      summary: Delete chat messages
+      description: Delete all chat messages or by session ID
+      operationId: deleteChatMessages
+      parameters:
+        - name: sessionId
+          in: query
+          description: Session ID to delete (optional, deletes all if not provided)
+          required: false
+          schema:
+            type: string
+          example: "session-123-abc"
+      responses:
+        '204':
+          description: Chat messages deleted successfully
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     FileMetadataResponseDto:
@@ -450,3 +575,59 @@ components:
         error: "Not Found"
         message: "FileMetadata with id 999 not found"
         path: "/api/v1/files/999"
+
+    ChatMessageRequestDto:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          description: Role of the message sender
+          enum: [user, assistant]
+          example: "user"
+        content:
+          type: string
+          description: Content of the chat message
+          example: "How many documents do I have?"
+        sessionId:
+          type: string
+          description: Session ID to group related messages
+          example: "session-123-abc"
+      example:
+        role: "user"
+        content: "How many documents do I have?"
+        sessionId: "session-123-abc"
+
+    ChatMessageResponseDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier of the chat message
+          example: 1
+        role:
+          type: string
+          description: Role of the message sender
+          example: "user"
+        content:
+          type: string
+          description: Content of the chat message
+          example: "How many documents do I have?"
+        sessionId:
+          type: string
+          description: Session ID to group related messages
+          example: "session-123-abc"
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the message was created
+          example: "2025-10-23T10:30:00Z"
+      example:
+        id: 1
+        role: "user"
+        content: "How many documents do I have?"
+        sessionId: "session-123-abc"
+        timestamp: "2025-10-23T10:30:00Z"

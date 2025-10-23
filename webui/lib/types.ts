@@ -48,3 +48,38 @@ export interface DuplicateFileInfo {
   filename: string
   author: string
 }
+
+// Chat types
+export type MessageRole = "user" | "assistant" | "system"
+
+export interface ChatMessage {
+  id: string
+  role: MessageRole
+  content: string
+  timestamp: Date
+  sessionId?: string
+}
+
+export interface ChatRequest {
+  message: string
+  conversationHistory: ChatMessage[]
+}
+
+export interface ChatResponse {
+  message: string
+  error?: string
+}
+
+export interface ChatMessageRequestDto {
+  role: string
+  content: string
+  sessionId?: string
+}
+
+export interface ChatMessageResponseDto {
+  id: number
+  role: string
+  content: string
+  sessionId: string | null
+  timestamp: string
+}

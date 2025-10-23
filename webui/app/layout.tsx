@@ -4,7 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 import Link from "next/link"
-import { FileText, Search, Upload, LayoutDashboard } from "lucide-react"
+import { FileText, Search, Upload, LayoutDashboard, MessageSquare } from "lucide-react"
 import { Suspense } from "react"
 
 export const metadata: Metadata = {
@@ -49,6 +49,13 @@ export default function RootLayout({
                 >
                   <Upload className="h-4 w-4" />
                   Upload
+                </Link>
+                <Link
+                  href="/chat"
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Chat
                 </Link>
               </nav>
             </div>

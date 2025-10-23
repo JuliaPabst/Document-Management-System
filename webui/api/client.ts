@@ -1,5 +1,12 @@
 import { HttpClient } from "@/lib/http"
-import type { FileMetadata, SearchParams, UploadRequest, UpdateRequest } from "@/lib/types"
+import type { 
+  FileMetadata, 
+  SearchParams, 
+  UploadRequest, 
+  UpdateRequest,
+  ChatMessageRequestDto,
+  ChatMessageResponseDto 
+} from "@/lib/types"
 
 interface ApiAdapter {
   getAllFiles(params?: SearchParams): Promise<FileMetadata[]>
@@ -7,6 +14,8 @@ interface ApiAdapter {
   uploadFile(request: UploadRequest): Promise<FileMetadata>
   updateFile(id: number, request: UpdateRequest): Promise<FileMetadata>
   deleteFile(id: number): Promise<void>
+  saveChatMessage(request: ChatMessageRequestDto): Promise<ChatMessageResponseDto>
+  getChatMessages(sessionId?: string): Promise<ChatMessageResponseDto[]>
 }
 
 class RestAdapter implements ApiAdapter {
@@ -40,6 +49,15 @@ class RestAdapter implements ApiAdapter {
 
   async deleteFile(id: number): Promise<void> {
     return this.http.delete(`/api/v1/files/${id}`)
+  }
+
+  async saveChatMessage(request: ChatMessageRequestDto): Promise<ChatMessageResponseDto> {
+    return this.http.post<ChatMessageResponseDto>("/api/v1/chat-messages", request)
+  }
+
+  async getChatMessages(sessionId?: string): Promise<ChatMessageResponseDto[]> {
+    const params = sessionId ? { sessionId } : undefined
+    return this.http.get<ChatMessageResponseDto[]>("/api/v1/chat-messages", params)
   }
 }
 
