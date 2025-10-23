@@ -107,7 +107,7 @@ Remember this information for the entire conversation. Use it to answer all ques
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4.1-mini',
         messages,
         temperature: 0.3, 
         max_tokens: 500,

@@ -83,7 +83,7 @@ Users can ask questions like:
 ## API Configuration
 
 ### OpenAI Model Settings
-The chat uses `gpt-3.5-turbo` with:
+The chat uses `gpt-4.1-mini` with:
 - **Temperature:** 0.3 (high accuracy less creativity)
 - **Max Tokens:** 500 (concise responses)
 
