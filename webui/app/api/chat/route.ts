@@ -15,14 +15,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Always fetch file metadata to provide current context
+    // This ensures the AI always has up-to-date information
+    let systemMessage = `You are a helpful assistant for a document management system called Paperless. You help users find information about their documents, answer questions about file metadata, and provide assistance with document management tasks.`
+    
     // Fetch all file metadata to provide as context
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL 
-    let filesContext = ''
+    // Use nginx as reverse proxy (same as client.ts does from browser)
+    const nginxUrl = process.env.NGINX_URL || 'http://nginx'
     
     try {
-      // Get the base URL from the request
-      const baseUrl = request.headers.get('origin') || 'http://localhost:3000'
-      const filesResponse = await fetch(`${baseUrl}${apiBaseUrl}/v1/files`, {
+      const filesResponse = await fetch(`${nginxUrl}/api/v1/files`, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -30,25 +32,62 @@ export async function POST(request: NextRequest) {
       
       if (filesResponse.ok) {
         const files = await filesResponse.json()
-        filesContext = `\n\nYou have access to the following documents in the system:\n${JSON.stringify(files, null, 2)}\n\nUse this information to answer questions about the documents.`
+          
+          // Calculate statistics from the data
+          const totalFiles = files.length
+          const uniqueAuthors = [...new Set(files.map((f: any) => f.author))].sort()
+          const fileTypeGroups = files.reduce((acc: any, f: any) => {
+            acc[f.fileType] = (acc[f.fileType] || 0) + 1
+            return acc
+          }, {})
+          const totalSize = files.reduce((sum: number, f: any) => sum + f.size, 0)
+          
+          // Format the context in a structured way
+          const filesContext = `
+
+=== DOCUMENT DATABASE INFORMATION ===
+This information represents the COMPLETE and ACCURATE state of the document database. You MUST use ONLY this data to answer questions. DO NOT make up or hallucinate any information.
+
+STATISTICS:
+- Total Documents: ${totalFiles}
+- Total Authors: ${uniqueAuthors.length}
+- Total Storage Used: ${(totalSize / (1024 * 1024)).toFixed(2)} MB
+
+AUTHORS LIST (Complete):
+${uniqueAuthors.map((author, i) => `${i + 1}. ${author}`).join('\n')}
+
+FILE TYPES DISTRIBUTION:
+${Object.entries(fileTypeGroups).map(([type, count]) => `- ${type}: ${count} file(s)`).join('\n')}
+
+COMPLETE DOCUMENT LIST:
+${files.map((f: any, i: number) => 
+  `${i + 1}. "${f.filename}" by ${f.author} (${f.fileType}, ${(f.size / 1024).toFixed(2)} KB, uploaded: ${new Date(f.uploadTime).toLocaleDateString()})`
+).join('\n')}
+
+CRITICAL INSTRUCTIONS:
+- You have READ-ONLY access to this data
+- ALWAYS base your answers on the data above - DO NOT hallucinate or make up information
+- If a user asks about documents, authors, or statistics, count and reference the data above
+- When asked "how many", count from the lists above
+- When asked about specific files or authors, search in the lists above
+- If information is not in the data above, say "I don't have information about that in the current database"
+- You CANNOT execute SQL queries or modify the database
+- All data is pre-fetched and sanitized for security
+
+Remember this information for the entire conversation. Use it to answer all questions about documents.`
+          
+          systemMessage += filesContext
+        }
+      } catch (error) {
+        console.error('Failed to fetch file metadata:', error)
+        systemMessage += '\n\nNote: Could not fetch document database information. Please try again later.'
       }
-    } catch (error) {
-      console.error('Failed to fetch file metadata:', error)
-      // Continue without file context
-    }
 
     // Build messages for OpenAI API
     const messages = [
       {
         role: 'system',
-        content: `You are a helpful assistant for a document management system called PaperlessWebUI. You help users find information about their documents, answer questions about file metadata, and provide assistance with document management tasks.${filesContext}
-        
-When answering questions:
-- Be concise and helpful
-- Reference specific documents when relevant
-- Help users find documents by name, author, or type
-- Provide statistics about their document collection when asked
-- Suggest useful actions they can take in the system`
+        content: systemMessage
       },
       ...conversationHistory.map(msg => ({
         role: msg.role,
@@ -70,7 +109,7 @@ When answering questions:
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
         messages,
-        temperature: 0.7,
+        temperature: 0.3, 
         max_tokens: 500,
       }),
     })

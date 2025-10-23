@@ -50,6 +50,8 @@ services:
     restart: unless-stopped
     environment:
       - NEXT_PUBLIC_API_BASE_URL=/api
+      - NGINX_URL=http://nginx
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
 
   nginx:
     image: nginx:alpine

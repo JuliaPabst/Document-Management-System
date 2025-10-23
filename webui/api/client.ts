@@ -26,38 +26,38 @@ class RestAdapter implements ApiAdapter {
   }
 
   async getAllFiles(params?: SearchParams): Promise<FileMetadata[]> {
-    return this.http.get<FileMetadata[]>("/api/v1/files", params as Record<string, string>)
+    return this.http.get<FileMetadata[]>("/v1/files", params as Record<string, string>)
   }
 
   async getFileById(id: number): Promise<FileMetadata> {
-    return this.http.get<FileMetadata>(`/api/v1/files/${id}`)
+    return this.http.get<FileMetadata>(`/v1/files/${id}`)
   }
 
   async uploadFile(request: UploadRequest): Promise<FileMetadata> {
     const formData = new FormData()
     formData.append("file", request.file)
     formData.append("author", request.author)
-    return this.http.post<FileMetadata>("/api/v1/files", formData)
+    return this.http.post<FileMetadata>("/v1/files", formData)
   }
 
   async updateFile(id: number, request: UpdateRequest): Promise<FileMetadata> {
     const formData = new FormData()
     if (request.file) formData.append("file", request.file)
     if (request.author) formData.append("author", request.author)
-    return this.http.patch<FileMetadata>(`/api/v1/files/${id}`, formData)
+    return this.http.patch<FileMetadata>(`/v1/files/${id}`, formData)
   }
 
   async deleteFile(id: number): Promise<void> {
-    return this.http.delete(`/api/v1/files/${id}`)
+    return this.http.delete(`/v1/files/${id}`)
   }
 
   async saveChatMessage(request: ChatMessageRequestDto): Promise<ChatMessageResponseDto> {
-    return this.http.post<ChatMessageResponseDto>("/api/v1/chat-messages", request)
+    return this.http.post<ChatMessageResponseDto>("/v1/chat-messages", request)
   }
 
   async getChatMessages(sessionId?: string): Promise<ChatMessageResponseDto[]> {
     const params = sessionId ? { sessionId } : undefined
-    return this.http.get<ChatMessageResponseDto[]>("/api/v1/chat-messages", params)
+    return this.http.get<ChatMessageResponseDto[]>("/v1/chat-messages", params)
   }
 }
 

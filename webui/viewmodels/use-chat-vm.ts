@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
 import type { ChatMessage, ChatRequest, ChatResponse } from "@/lib/types"
 import { apiClient } from "@/api/client"
 

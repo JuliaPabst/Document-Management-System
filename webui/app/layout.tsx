@@ -8,7 +8,7 @@ import { FileText, Search, Upload, LayoutDashboard, MessageSquare } from "lucide
 import { Suspense } from "react"
 
 export const metadata: Metadata = {
-  title: "PaperlessWebUI - Document Management System",
+  title: "Paperless - Document Management System",
   description: "Modern document management system built with Next.js",
 }
 
@@ -25,7 +25,7 @@ export default function RootLayout({
             <div className="container mx-auto flex h-16 items-center px-4">
               <Link href="/" className="flex items-center gap-2 font-semibold text-foreground">
                 <FileText className="h-6 w-6 text-primary" />
-                <span className="text-lg">PaperlessWebUI</span>
+                <span className="text-lg">Paperless</span>
               </Link>
 
               <nav className="ml-auto flex items-center gap-1">
