@@ -5,7 +5,9 @@ import type {
   UploadRequest, 
   UpdateRequest,
   ChatMessageRequestDto,
-  ChatMessageResponseDto 
+  ChatMessageResponseDto,
+  ChatRequest,
+  ChatResponse
 } from "@/lib/types"
 
 interface ApiAdapter {
@@ -16,6 +18,7 @@ interface ApiAdapter {
   deleteFile(id: number): Promise<void>
   saveChatMessage(request: ChatMessageRequestDto): Promise<ChatMessageResponseDto>
   getChatMessages(sessionId?: string): Promise<ChatMessageResponseDto[]>
+  generateChatCompletion(request: ChatRequest): Promise<ChatResponse>
 }
 
 class RestAdapter implements ApiAdapter {
@@ -58,6 +61,10 @@ class RestAdapter implements ApiAdapter {
   async getChatMessages(sessionId?: string): Promise<ChatMessageResponseDto[]> {
     const params = sessionId ? { sessionId } : undefined
     return this.http.get<ChatMessageResponseDto[]>("/v1/chat-messages", params)
+  }
+
+  async generateChatCompletion(request: ChatRequest): Promise<ChatResponse> {
+    return this.http.post<ChatResponse>("/v1/chat", request)
   }
 }
 

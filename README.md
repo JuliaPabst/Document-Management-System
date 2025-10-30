@@ -16,3 +16,4 @@ A Document management system for archiving documents in a FileStore, with automa
 ## Sprint 2 
 - Add webui service and nginx service as proxy between ui and rest service 
 - Add webui with functionality that is described in README.md in webui folder
+- Add special feature: AI Chatbot Integration 

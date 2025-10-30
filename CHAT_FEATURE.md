@@ -70,21 +70,48 @@ Users can ask questions like:
    - Error handling
    - Conversation history
 
-### Backend API
+6. **`api/client.ts`**
+   - REST API adapter
+   - `generateChatCompletion()` method calls `/api/v1/chat`
+   - Handles HTTP communication
 
-**`app/api/chat/route.ts`**
-- Next.js API route (Edge runtime)
-- Fetches file metadata from REST API
-- Calls OpenAI Chat Completions API
-- Provides file context to ChatGPT
-- Returns formatted responses
+### Backend API (Spring Boot REST Service)
 
+1. **`controller/ChatController.java`**
+   - REST endpoint: `POST /api/v1/chat`
+   - Accepts chat requests from frontend
+   - Returns AI-generated responses
+
+2. **`service/OpenAIService.java`**
+   - Calls OpenAI Chat Completions API
+   - Fetches file metadata from database
+   - Builds context-aware system prompts
+   - Includes document statistics and lists
+
+3. **`dto/ChatCompletionRequestDto.java`**
+   - Request DTO with message and conversation history
+
+4. **`dto/ChatCompletionResponseDto.java`**
+   - Response DTO with AI-generated message
+
+5. **Database Integration**
+   - Fetches all file metadata via `FileMetadataService`
+   - Provides complete document context to AI
+   - No direct SQL - uses JPA repositories
 
 ## API Configuration
 
 ### OpenAI Model Settings
 The chat uses `gpt-4.1-mini` with:
-- **Temperature:** 0.3 (high accuracy less creativity)
+- **Temperature:** 0.3 (high accuracy, less creativity)
 - **Max Tokens:** 500 (concise responses)
 
-You can modify these in `app/api/chat/route.ts`:
+You can modify these in `rest/src/main/resources/application.properties`:
+
+```properties
+openai.api.key=${OPENAI_API_KEY:}
+openai.api.url=https://api.openai.com/v1/chat/completions
+openai.model=gpt-4.1-mini
+openai.temperature=0.3
+openai.max.tokens=500
+```

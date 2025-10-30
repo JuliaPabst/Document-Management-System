@@ -18,6 +18,8 @@ tags:
     description: API for managing file metadata in the paperless document system
   - name: Chat Message Management
     description: API for managing chat conversation history
+  - name: Chat
+    description: AI-powered chat completion API using OpenAI
 
 paths:
   /api/v1/files:
@@ -376,6 +378,72 @@ paths:
                     message: "An unexpected error occurred"
                     path: "/api/v1/files/999"
 
+  /api/v1/chat:
+    post:
+      tags:
+        - Chat
+      summary: Generate chat completion
+      description: |
+        Generate an AI-powered chat response using OpenAI with document database context.
+        The AI assistant has access to all file metadata and can answer questions about documents.
+      operationId: generateChatCompletion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequestDto'
+            examples:
+              simpleQuery:
+                summary: Simple Query
+                value:
+                  message: "How many documents do I have?"
+                  conversationHistory: []
+              withHistory:
+                summary: Query with Context
+                value:
+                  message: "Show me the PDFs"
+                  conversationHistory:
+                    - role: "user"
+                      content: "How many documents do I have?"
+                    - role: "assistant"
+                      content: "You have 42 documents in your system."
+      responses:
+        '200':
+          description: Chat completion generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResponseDto'
+              examples:
+                response:
+                  summary: AI Response
+                  value:
+                    message: "You currently have 42 documents in your system: 15 PDFs, 12 DOCX files, 8 images, and 7 other file types."
+        '500':
+          description: Internal server error or OpenAI API error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                apiKeyError:
+                  summary: Missing API Key
+                  value:
+                    timestamp: "2025-10-30T10:30:00"
+                    status: 500
+                    error: "Internal Server Error"
+                    message: "OpenAI API key is not configured"
+                    path: "/api/v1/chat"
+                openAIError:
+                  summary: OpenAI API Error
+                  value:
+                    timestamp: "2025-10-30T10:30:00"
+                    status: 500
+                    error: "Internal Server Error"
+                    message: "Failed to get response from OpenAI API: 429"
+                    path: "/api/v1/chat"
+
   /api/v1/chat-messages:
     post:
       tags:
@@ -631,3 +699,44 @@ components:
         content: "How many documents do I have?"
         sessionId: "session-123-abc"
         timestamp: "2025-10-23T10:30:00Z"
+
+    ChatCompletionRequestDto:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: The user's message to send to the AI
+          example: "How many documents do I have?"
+        conversationHistory:
+          type: array
+          description: Previous messages in the conversation for context
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                enum: [user, assistant]
+                description: Role of the message sender
+              content:
+                type: string
+                description: Content of the message
+          example:
+            - role: "user"
+              content: "Hello"
+            - role: "assistant"
+              content: "Hi! How can I help you today?"
+      example:
+        message: "How many documents do I have?"
+        conversationHistory: []
+
+    ChatCompletionResponseDto:
+      type: object
+      properties:
+        message:
+          type: string
+          description: The AI-generated response
+          example: "You currently have 42 documents in your system."
+      example:
+        message: "You currently have 42 documents in your system."

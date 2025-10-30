@@ -43,19 +43,7 @@ export function useChatVM() {
         conversationHistory: messages,
       }
 
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      })
-
-      const data: ChatResponse = await response.json()
-
-      if (!response.ok || data.error) {
-        throw new Error(data.error || "Failed to get response")
-      }
+      const data = await apiClient.generateChatCompletion(requestBody)
 
       // Add assistant message to the conversation
       const assistantMessage: ChatMessage = {
