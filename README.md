@@ -16,4 +16,4 @@ A Document management system for archiving documents in a FileStore, with automa
 ## Sprint 2 
 - Add webui service and nginx service as proxy between ui and rest service 
 - Add webui with functionality that is described in README.md in webui folder
-- Add special feature: AI Chatbot Integration 
+- Add special feature: AI Chatbot Integration: Look at CHAT_FEATURE.md file to integrate chat functionality locally by adding your own OPENAI API key
