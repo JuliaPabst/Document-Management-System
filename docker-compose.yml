@@ -36,6 +36,32 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/organization
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+  
+  webui:
+    build:
+      context: webui
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api
+    expose:
+      - "3000"
+    depends_on:
+      - rest
+    restart: unless-stopped
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=/api
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - webui
+      - rest
+    restart: unless-stopped
 
 volumes:
   postgres-data:

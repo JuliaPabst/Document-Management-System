@@ -1,0 +1,22 @@
+package org.rest.dto;
+
+/**
+ * DTO for chat completion response
+ */
+public class ChatCompletionResponseDto {
+    private String message;
+
+    public ChatCompletionResponseDto() {}
+
+    public ChatCompletionResponseDto(String message) {
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}

@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "file_metadata")
@@ -39,20 +39,20 @@ public class FileMetadata {
     private Long size;
     
     @Column(name = "upload_time", nullable = false)
-    private LocalDateTime uploadTime;
+    private Instant uploadTime;
     
     @Column(name = "last_edited", nullable = false)
-    private LocalDateTime lastEdited;
+    private Instant lastEdited;
     
     @PrePersist
     protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         this.uploadTime = now;
         this.lastEdited = now;
     }
     
     @PreUpdate
     protected void onUpdate() {
-        this.lastEdited = LocalDateTime.now();
+        this.lastEdited = Instant.now();
     }
 }
