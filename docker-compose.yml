@@ -79,6 +79,19 @@ services:
       - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
     restart: unless-stopped
 
+  workers:
+    build:
+      context: paperlessWorkers
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS}
+
 volumes:
   postgres-data:
   pgadmin-data:
