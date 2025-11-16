@@ -30,6 +30,7 @@ services:
     restart: unless-stopped
     depends_on:
       - db
+      - rabbitmq
     ports:
       - "8081:8081"
     environment:
@@ -37,6 +38,10 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS}
   
   webui:
     build:
@@ -63,6 +68,18 @@ services:
       - rest
     restart: unless-stopped
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    restart: unless-stopped
+
 volumes:
   postgres-data:
   pgadmin-data:
+  rabbitmq-data:
