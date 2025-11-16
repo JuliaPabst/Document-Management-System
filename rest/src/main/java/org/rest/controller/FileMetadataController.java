@@ -7,11 +7,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.rest.dto.FileMessageDto;
 import org.rest.dto.FileMetadataResponseDto;
 import org.rest.dto.FileUploadDto;
 import org.rest.mapper.FileMetadataMapper;
 import org.rest.model.FileMetadata;
 import org.rest.service.FileMetadataService;
+import org.rest.service.MessageProducerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,7 @@ public class FileMetadataController {
 
     private final FileMetadataService fileMetadataService;
     private final FileMetadataMapper fileMetadataMapper;
+    private final MessageProducerService messageProducerService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload file with metadata", description = "Upload a file and create metadata entry")
@@ -59,6 +62,18 @@ public class FileMetadataController {
 
         // TODO: Store the actual file bytes (file.getBytes()) to a storage system
         log.info("File metadata created with ID: {}. File storage not yet implemented.", savedMetadata.getId());
+
+        // Send messages to RabbitMQ queues
+        FileMessageDto fileMessage = new FileMessageDto(
+                savedMetadata.getId(),
+                savedMetadata.getFilename(),
+                savedMetadata.getAuthor(),
+                savedMetadata.getFileType(),
+                savedMetadata.getSize(),
+                savedMetadata.getUploadTime()
+        );
+        messageProducerService.sendToOcrQueue(fileMessage);
+        messageProducerService.sendToGenAiQueue(fileMessage);
 
         FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(savedMetadata);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
