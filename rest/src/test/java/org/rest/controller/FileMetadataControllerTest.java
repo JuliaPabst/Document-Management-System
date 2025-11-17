@@ -66,7 +66,7 @@ class FileMetadataControllerTest {
 
         // Mapper/Service stubs
         when(fileMetadataMapper.toEntity(any(), any())).thenReturn(mapped);
-        when(fileMetadataService.createFileMetadata(any(FileMetadata.class))).thenReturn(saved);
+        when(fileMetadataService.createFileMetadataWithWorkerNotification(any(FileMetadata.class))).thenReturn(saved);
         when(fileMetadataMapper.toResponseDto(any(FileMetadata.class))).thenAnswer(inv -> {
             FileMetadata fm = inv.getArgument(0);
             var dto = new org.rest.dto.FileMetadataResponseDto();
@@ -178,7 +178,7 @@ class FileMetadataControllerTest {
         updated.setLastEdited(now);
 
         when(fileMetadataMapper.extractExtensionUpper("updated.pdf")).thenReturn("PDF");
-        when(fileMetadataService.updateFileMetadata(eq(1L), any(FileMetadata.class))).thenReturn(updated);
+        when(fileMetadataService.updateFileMetadataWithWorkerNotification(eq(1L), any(FileMetadata.class), eq(true))).thenReturn(updated);
         when(fileMetadataMapper.toResponseDto(any(FileMetadata.class))).thenAnswer(inv -> {
             FileMetadata fm = inv.getArgument(0);
             var dto = new org.rest.dto.FileMetadataResponseDto();
@@ -223,7 +223,7 @@ class FileMetadataControllerTest {
         updated.setUploadTime(now);
         updated.setLastEdited(now);
 
-        when(fileMetadataService.updateFileMetadata(eq(1L), any(FileMetadata.class))).thenReturn(updated);
+        when(fileMetadataService.updateFileMetadataWithWorkerNotification(eq(1L), any(FileMetadata.class), eq(false))).thenReturn(updated);
         when(fileMetadataMapper.toResponseDto(any(FileMetadata.class))).thenAnswer(inv -> {
             FileMetadata fm = inv.getArgument(0);
             var dto = new org.rest.dto.FileMetadataResponseDto();
