@@ -140,6 +140,7 @@ public class FileMetadataController {
         log.info("Received request to update file metadata with ID: {}", id);
 
         FileMetadata updates = new FileMetadata();
+        boolean fileReplaced = false;
         
         // If a new file is uploaded, extract metadata from it
         if (file != null && !file.isEmpty()) {
@@ -147,6 +148,7 @@ public class FileMetadataController {
             updates.setFilename(file.getOriginalFilename());
             updates.setFileType(fileMetadataMapper.extractExtensionUpper(file.getOriginalFilename()));
             updates.setSize(file.getSize());
+            fileReplaced = true;
             // TODO: Store the actual file bytes (file.getBytes()) to replace the old file
         }
         
@@ -156,6 +158,24 @@ public class FileMetadataController {
         }
         
         FileMetadata updatedMetadata = fileMetadataService.updateFileMetadata(id, updates);
+        
+        // Send messages to RabbitMQ queues only if new file was uploaded (replaced)
+        if (fileReplaced) {
+            log.info("File with id {} was replaced, sending to worker queues for reprocessing", id);
+            FileMessageDto fileMessage = new FileMessageDto(
+                    updatedMetadata.getId(),
+                    updatedMetadata.getFilename(),
+                    updatedMetadata.getAuthor(),
+                    updatedMetadata.getFileType(),
+                    updatedMetadata.getSize(),
+                    updatedMetadata.getUploadTime()
+            );
+            messageProducerService.sendToOcrQueue(fileMessage);
+            messageProducerService.sendToGenAiQueue(fileMessage);
+        } else {
+            log.info("Only metadata updated for id {}, no file replacement. Skipping worker queue", id);
+        }
+        
         FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(updatedMetadata);
         return ResponseEntity.ok(response);
     }
