@@ -22,7 +22,9 @@ A Document management system for archiving documents in a FileStore, with automa
 - Implemented RabbitMQ as a standalone component for asynchronous message processing
 - Created message queuing infrastructure with 4 queues: ocr-worker-queue, genai-worker-queue, ocr-result-queue, genai-result-queue
 - Built paperlessWorkers Spring Boot application with separate OCR and GenAI worker services
-- Integrated RabbitMQ messaging: REST service sends file metadata to worker queues on document upload
+- Integrated RabbitMQ messaging: REST service sends file metadata to worker queues on document upload (POST) and file replacement (PATCH with file, skipped for metadata-only updates)
 - Configured bidirectional message flow: workers process messages and send results back to result queues
 - Implemented result listeners in REST service to receive and process worker responses
+- Added logging at critical positions (message sending, receiving, processing)
+- Layer-specific exception handling with GlobalExceptionHandler
 - Externalized all credentials to .env file for secure configuration management
