@@ -2,6 +2,7 @@ package org.rest.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.rest.dto.FileMessageDto;
 import org.rest.exception.DuplicateFileException;
 import org.rest.exception.FileMetadataNotFoundException;
 import org.rest.model.FileMetadata;
@@ -18,6 +19,7 @@ import java.util.List;
 public class FileMetadataService {
     
     private final FileMetadataRepository fileMetadataRepository;
+    private final MessageProducerService messageProducerService;
     
     public FileMetadata createFileMetadata(FileMetadata fileMetadata) {
         log.info("Creating file metadata for filename: {} by author: {}", 
@@ -35,6 +37,25 @@ public class FileMetadataService {
         
         FileMetadata savedMetadata = fileMetadataRepository.save(fileMetadata);
         log.info("File metadata created with ID: {}", savedMetadata.getId());
+        
+        return savedMetadata;
+    }
+    
+    public FileMetadata createFileMetadataWithWorkerNotification(FileMetadata fileMetadata) {
+        FileMetadata savedMetadata = createFileMetadata(fileMetadata);
+        
+        // Send to worker queues for processing
+        log.info("Sending file metadata with id {} to worker queues", savedMetadata.getId());
+        FileMessageDto fileMessage = new FileMessageDto(
+                savedMetadata.getId(),
+                savedMetadata.getFilename(),
+                savedMetadata.getAuthor(),
+                savedMetadata.getFileType(),
+                savedMetadata.getSize(),
+                savedMetadata.getUploadTime()
+        );
+        messageProducerService.sendToOcrQueue(fileMessage);
+        messageProducerService.sendToGenAiQueue(fileMessage);
         
         return savedMetadata;
     }
@@ -96,6 +117,29 @@ public class FileMetadataService {
         
         FileMetadata updatedMetadata = fileMetadataRepository.save(fileMetadata);
         log.info("File metadata updated with ID: {}", updatedMetadata.getId());
+        
+        return updatedMetadata;
+    }
+    
+    public FileMetadata updateFileMetadataWithWorkerNotification(Long id, FileMetadata updates, boolean fileReplaced) {
+        FileMetadata updatedMetadata = updateFileMetadata(id, updates);
+        
+        // Send to worker queues only if file was replaced
+        if (fileReplaced) {
+            log.info("File with id {} was replaced, sending to worker queues for reprocessing", updatedMetadata.getId());
+            FileMessageDto fileMessage = new FileMessageDto(
+                    updatedMetadata.getId(),
+                    updatedMetadata.getFilename(),
+                    updatedMetadata.getAuthor(),
+                    updatedMetadata.getFileType(),
+                    updatedMetadata.getSize(),
+                    updatedMetadata.getUploadTime()
+            );
+            messageProducerService.sendToOcrQueue(fileMessage);
+            messageProducerService.sendToGenAiQueue(fileMessage);
+        } else {
+            log.info("Only metadata updated for id {}, skipping worker queue", updatedMetadata.getId());
+        }
         
         return updatedMetadata;
     }

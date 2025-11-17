@@ -7,13 +7,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.rest.dto.FileMessageDto;
 import org.rest.dto.FileMetadataResponseDto;
 import org.rest.dto.FileUploadDto;
 import org.rest.mapper.FileMetadataMapper;
 import org.rest.model.FileMetadata;
 import org.rest.service.FileMetadataService;
-import org.rest.service.MessageProducerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +29,6 @@ public class FileMetadataController {
 
     private final FileMetadataService fileMetadataService;
     private final FileMetadataMapper fileMetadataMapper;
-    private final MessageProducerService messageProducerService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload file with metadata", description = "Upload a file and create metadata entry")
@@ -57,23 +54,11 @@ public class FileMetadataController {
         uploadDto.setAuthor(author);
         FileMetadata fileMetadata = fileMetadataMapper.toEntity(uploadDto, file);
 
-        // Save metadata and file (file storage logic to be implemented)
-        FileMetadata savedMetadata = fileMetadataService.createFileMetadata(fileMetadata);
+        // Save metadata and notify workers (file storage logic to be implemented)
+        FileMetadata savedMetadata = fileMetadataService.createFileMetadataWithWorkerNotification(fileMetadata);
 
         // TODO: Store the actual file bytes (file.getBytes()) to a storage system
         log.info("File metadata created with ID: {}. File storage not yet implemented.", savedMetadata.getId());
-
-        // Send messages to RabbitMQ queues
-        FileMessageDto fileMessage = new FileMessageDto(
-                savedMetadata.getId(),
-                savedMetadata.getFilename(),
-                savedMetadata.getAuthor(),
-                savedMetadata.getFileType(),
-                savedMetadata.getSize(),
-                savedMetadata.getUploadTime()
-        );
-        messageProducerService.sendToOcrQueue(fileMessage);
-        messageProducerService.sendToGenAiQueue(fileMessage);
 
         FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(savedMetadata);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -157,24 +142,8 @@ public class FileMetadataController {
             updates.setAuthor(author.trim());
         }
         
-        FileMetadata updatedMetadata = fileMetadataService.updateFileMetadata(id, updates);
-        
-        // Send messages to RabbitMQ queues only if new file was uploaded (replaced)
-        if (fileReplaced) {
-            log.info("File with id {} was replaced, sending to worker queues for reprocessing", id);
-            FileMessageDto fileMessage = new FileMessageDto(
-                    updatedMetadata.getId(),
-                    updatedMetadata.getFilename(),
-                    updatedMetadata.getAuthor(),
-                    updatedMetadata.getFileType(),
-                    updatedMetadata.getSize(),
-                    updatedMetadata.getUploadTime()
-            );
-            messageProducerService.sendToOcrQueue(fileMessage);
-            messageProducerService.sendToGenAiQueue(fileMessage);
-        } else {
-            log.info("Only metadata updated for id {}, no file replacement. Skipping worker queue", id);
-        }
+        // Update metadata and notify workers if file was replaced
+        FileMetadata updatedMetadata = fileMetadataService.updateFileMetadataWithWorkerNotification(id, updates, fileReplaced);
         
         FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(updatedMetadata);
         return ResponseEntity.ok(response);
