@@ -19,6 +19,9 @@ public class FileMetadataServiceTest {
     @Mock
     private FileMetadataRepository fileMetadataRepository;
 
+    @Mock
+    private MessageProducerService messageProducerService;
+
     @InjectMocks
     private FileMetadataService fileMetadataService;
 
@@ -182,5 +185,88 @@ public class FileMetadataServiceTest {
         List<FileMetadata> result = fileMetadataService.getFileMetadataByFileType("pdf");
         assertEquals(1, result.size());
         assertEquals("pdf", result.getFirst().getFileType());
+    }
+
+    @Test
+    void testCreateFileMetadataWithWorkerNotification() {
+        // arrange
+        FileMetadata inputEntity = new FileMetadata();
+        inputEntity.setFilename("test.pdf");
+        inputEntity.setAuthor("Test Author");
+        inputEntity.setFileType("PDF");
+        inputEntity.setSize(1024L);
+
+        FileMetadata savedEntity = new FileMetadata();
+        savedEntity.setId(1L);
+        savedEntity.setFilename("test.pdf");
+        savedEntity.setAuthor("Test Author");
+        savedEntity.setFileType("PDF");
+        savedEntity.setSize(1024L);
+
+        when(fileMetadataRepository.existsByFilenameAndAuthor(anyString(), anyString())).thenReturn(false);
+        when(fileMetadataRepository.save(any(FileMetadata.class))).thenReturn(savedEntity);
+
+        // act
+        FileMetadata result = fileMetadataService.createFileMetadataWithWorkerNotification(inputEntity);
+
+        // assert
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        verify(fileMetadataRepository).save(any(FileMetadata.class));
+        verify(messageProducerService).sendToOcrQueue(any());
+        verify(messageProducerService).sendToGenAiQueue(any());
+    }
+
+    @Test
+    void testUpdateFileMetadataWithWorkerNotification_WithFileReplacement() {
+        // arrange
+        FileMetadata existing = new FileMetadata();
+        existing.setId(1L);
+        existing.setFilename("old.pdf");
+        existing.setAuthor("Author");
+        existing.setFileType("PDF");
+        existing.setSize(1024L);
+
+        FileMetadata updates = new FileMetadata();
+        updates.setFilename("new.pdf");
+        updates.setSize(2048L);
+
+        when(fileMetadataRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(fileMetadataRepository.save(any(FileMetadata.class))).thenReturn(existing);
+
+        // act
+        FileMetadata result = fileMetadataService.updateFileMetadataWithWorkerNotification(1L, updates, true);
+
+        // assert
+        assertNotNull(result);
+        verify(fileMetadataRepository).save(any(FileMetadata.class));
+        verify(messageProducerService).sendToOcrQueue(any());
+        verify(messageProducerService).sendToGenAiQueue(any());
+    }
+
+    @Test
+    void testUpdateFileMetadataWithWorkerNotification_WithoutFileReplacement() {
+        // arrange
+        FileMetadata existing = new FileMetadata();
+        existing.setId(1L);
+        existing.setFilename("test.pdf");
+        existing.setAuthor("Old Author");
+        existing.setFileType("PDF");
+        existing.setSize(1024L);
+
+        FileMetadata updates = new FileMetadata();
+        updates.setAuthor("New Author");
+
+        when(fileMetadataRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(fileMetadataRepository.save(any(FileMetadata.class))).thenReturn(existing);
+
+        // act
+        FileMetadata result = fileMetadataService.updateFileMetadataWithWorkerNotification(1L, updates, false);
+
+        // assert
+        assertNotNull(result);
+        verify(fileMetadataRepository).save(any(FileMetadata.class));
+        verify(messageProducerService, never()).sendToOcrQueue(any());
+        verify(messageProducerService, never()).sendToGenAiQueue(any());
     }
 }
