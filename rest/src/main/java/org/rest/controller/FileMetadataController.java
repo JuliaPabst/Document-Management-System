@@ -96,6 +96,26 @@ public class FileMetadataController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}/download")
+    @Operation(summary = "Download file content", description = "Download the actual file content from MinIO storage")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "File downloaded successfully"),
+            @ApiResponse(responseCode = "404", description = "File or file metadata not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<byte[]> downloadFile(
+            @Parameter(description = "File metadata ID") @PathVariable Long id) {
+        log.info("Received request to download file with ID: {}", id);
+
+        FileMetadata fileMetadata = fileMetadataService.getFileMetadataById(id);
+        byte[] fileContent = fileStorage.download(fileMetadata.getObjectKey());
+
+        return ResponseEntity.ok()
+                .header("Content-Type", fileMetadata.getFileType())
+                .header("Content-Disposition", "attachment; filename=\"" + fileMetadata.getFilename() + "\"")
+                .body(fileContent);
+    }
+
     @GetMapping
     @Operation(summary = "Get all file metadata", description = "Retrieve all file metadata entries, optionally filtered")
     @ApiResponses(value = {
