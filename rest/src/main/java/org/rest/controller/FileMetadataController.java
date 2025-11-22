@@ -12,12 +12,14 @@ import org.rest.dto.FileUploadDto;
 import org.rest.mapper.FileMetadataMapper;
 import org.rest.model.FileMetadata;
 import org.rest.service.FileMetadataService;
+import org.rest.service.FileStorage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -29,6 +31,7 @@ public class FileMetadataController {
 
     private final FileMetadataService fileMetadataService;
     private final FileMetadataMapper fileMetadataMapper;
+    private final FileStorage fileStorage;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload file with metadata", description = "Upload a file and create metadata entry")
@@ -49,19 +52,32 @@ public class FileMetadataController {
             throw new IllegalArgumentException("File cannot be empty");
         }
 
-        // Create DTO and use MapStruct to map to entity
-        FileUploadDto uploadDto = new FileUploadDto();
-        uploadDto.setAuthor(author);
-        FileMetadata fileMetadata = fileMetadataMapper.toEntity(uploadDto, file);
+        try {
+            // Create DTO and use MapStruct to map to entity
+            FileUploadDto uploadDto = new FileUploadDto();
+            uploadDto.setAuthor(author);
+            FileMetadata fileMetadata = fileMetadataMapper.toEntity(uploadDto, file);
 
-        // Save metadata and notify workers (file storage logic to be implemented)
-        FileMetadata savedMetadata = fileMetadataService.createFileMetadataWithWorkerNotification(fileMetadata);
+            // Generate unique object key for MinIO (using timestamp + filename for uniqueness)
+            String objectKey = String.format("%d-%s", System.currentTimeMillis(), file.getOriginalFilename());
+            fileMetadata.setObjectKey(objectKey);
 
-        // TODO: Store the actual file bytes (file.getBytes()) to a storage system
-        log.info("File metadata created with ID: {}. File storage not yet implemented.", savedMetadata.getId());
+            // Upload file to MinIO
+            byte[] fileBytes = file.getBytes();
+            String contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
+            fileStorage.upload(objectKey, fileBytes, contentType);
+            log.info("File uploaded to MinIO with object key: {}", objectKey);
 
-        FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(savedMetadata);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+            // Save metadata and notify workers
+            FileMetadata savedMetadata = fileMetadataService.createFileMetadataWithWorkerNotification(fileMetadata);
+            log.info("File metadata created with ID: {}, objectKey: {}", savedMetadata.getId(), savedMetadata.getObjectKey());
+
+            FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(savedMetadata);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (IOException e) {
+            log.error("Failed to read file bytes: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to process file upload", e);
+        }
     }
 
     @GetMapping("/{id}")

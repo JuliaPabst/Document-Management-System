@@ -20,6 +20,7 @@ public interface FileMetadataMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "uploadTime", ignore = true)
     @Mapping(target = "lastEdited", ignore = true)
+    @Mapping(target = "objectKey", ignore = true)
     @Mapping(target = "filename", expression = "java(file.getOriginalFilename())")
     @Mapping(target = "fileType", expression = "java(extractExtensionUpper(file.getOriginalFilename()))")
     @Mapping(target = "size", expression = "java(file.getSize())")
