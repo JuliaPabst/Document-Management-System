@@ -220,7 +220,18 @@ public class FileMetadataController {
             @Parameter(description = "File metadata ID") @PathVariable Long id) {
         log.info("Received request to delete file metadata with ID: {}", id);
 
+        // Get metadata to retrieve objectKey before deleting from DB
+        FileMetadata fileMetadata = fileMetadataService.getFileMetadataById(id);
+        String objectKey = fileMetadata.getObjectKey();
+        
+        // Delete from DB
         fileMetadataService.deleteFileMetadata(id);
+        log.info("File metadata deleted from database: {}", id);
+        
+        // Delete from MinIO
+        fileStorage.delete(objectKey);
+        log.info("File deleted from MinIO: {}", objectKey);
+        
         return ResponseEntity.noContent().build();
     }
 }
