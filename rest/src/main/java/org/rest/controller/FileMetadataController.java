@@ -160,29 +160,53 @@ public class FileMetadataController {
             @Parameter(description = "Author of the document (optional)") @RequestParam(value = "author", required = false) String author) {
         log.info("Received request to update file metadata with ID: {}", id);
 
-        FileMetadata updates = new FileMetadata();
-        boolean fileReplaced = false;
-        
-        // If a new file is uploaded, extract metadata from it
-        if (file != null && !file.isEmpty()) {
-            log.info("Replacing file with new upload: {}", file.getOriginalFilename());
-            updates.setFilename(file.getOriginalFilename());
-            updates.setFileType(fileMetadataMapper.extractExtensionUpper(file.getOriginalFilename()));
-            updates.setSize(file.getSize());
-            fileReplaced = true;
-            // TODO: Store the actual file bytes (file.getBytes()) to replace the old file
+        try {
+            FileMetadata updates = new FileMetadata();
+            boolean fileReplaced = false;
+            
+            // If a new file is uploaded, replace it in MinIO
+            if (file != null && !file.isEmpty()) {
+                log.info("Replacing file with new upload: {}", file.getOriginalFilename());
+                
+                // Get existing metadata to retrieve old objectKey
+                FileMetadata existingMetadata = fileMetadataService.getFileMetadataById(id);
+                String oldObjectKey = existingMetadata.getObjectKey();
+                
+                // Generate new unique object key
+                String newObjectKey = String.format("%d-%s", System.currentTimeMillis(), file.getOriginalFilename());
+                
+                // Upload new file to MinIO
+                byte[] fileBytes = file.getBytes();
+                String contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
+                fileStorage.upload(newObjectKey, fileBytes, contentType);
+                log.info("New file uploaded to MinIO with object key: {}", newObjectKey);
+                
+                // Delete old file from MinIO
+                fileStorage.delete(oldObjectKey);
+                log.info("Old file deleted from MinIO: {}", oldObjectKey);
+                
+                // Update metadata fields
+                updates.setFilename(file.getOriginalFilename());
+                updates.setFileType(fileMetadataMapper.extractExtensionUpper(file.getOriginalFilename()));
+                updates.setSize(file.getSize());
+                updates.setObjectKey(newObjectKey);
+                fileReplaced = true;
+            }
+            
+            // Update author if provided
+            if (author != null && !author.trim().isEmpty()) {
+                updates.setAuthor(author.trim());
+            }
+            
+            // Update metadata and notify workers if file was replaced
+            FileMetadata updatedMetadata = fileMetadataService.updateFileMetadataWithWorkerNotification(id, updates, fileReplaced);
+            
+            FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(updatedMetadata);
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            log.error("Failed to read file bytes during update: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to process file update", e);
         }
-        
-        // Update author if provided
-        if (author != null && !author.trim().isEmpty()) {
-            updates.setAuthor(author.trim());
-        }
-        
-        // Update metadata and notify workers if file was replaced
-        FileMetadata updatedMetadata = fileMetadataService.updateFileMetadataWithWorkerNotification(id, updates, fileReplaced);
-        
-        FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(updatedMetadata);
-        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
