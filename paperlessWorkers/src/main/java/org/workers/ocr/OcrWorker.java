@@ -7,6 +7,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.workers.dto.FileMessageDto;
+import org.workers.service.FileStorage;
 
 @Component
 @RequiredArgsConstructor
@@ -14,6 +15,7 @@ import org.workers.dto.FileMessageDto;
 public class OcrWorker {
 
     private final RabbitTemplate rabbitTemplate;
+    private final FileStorage fileStorage;
 
     @Value("${rabbitmq.queue.ocr.result}")
     private String resultQueueName;
@@ -22,12 +24,23 @@ public class OcrWorker {
     public void processOcrTask(FileMessageDto message) {
         log.info("OCR Worker received message: {}", message);
 
-        // Simulate OCR processing (skeleton only - no real implementation)
-        String result = "Result from OCR Worker - processed file: " + message.getFilename();
+        try {
+            // Download file from MinIO
+            byte[] fileContent = fileStorage.download(message.getObjectKey());
+            log.info("OCR Worker downloaded file from MinIO: {} ({} bytes)", 
+                    message.getObjectKey(), fileContent.length);
 
-        // Send result back to result queue
-        log.info("OCR Worker sending result to queue: {}", result);
-        rabbitTemplate.convertAndSend(resultQueueName, result);
-        log.info("OCR Worker result sent successfully");
+            // Simulate OCR processing (skeleton only - no real implementation) -> TODO
+            String result = "Result from OCR Worker - processed file: " + message.getFilename()
+                    + " (" + fileContent.length + " bytes)";
+
+            // Send result back to result queue
+            log.info("OCR Worker sending result to queue: {}", result);
+            rabbitTemplate.convertAndSend(resultQueueName, result);
+            log.info("OCR Worker result sent successfully");
+        } catch (Exception e) {
+            log.error("OCR Worker failed to process file: {}", e.getMessage(), e);
+            // TODO: proper error handling
+        }
     }
 }
