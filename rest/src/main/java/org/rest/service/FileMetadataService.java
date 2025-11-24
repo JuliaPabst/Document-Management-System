@@ -52,7 +52,8 @@ public class FileMetadataService {
                 savedMetadata.getAuthor(),
                 savedMetadata.getFileType(),
                 savedMetadata.getSize(),
-                savedMetadata.getUploadTime()
+                savedMetadata.getUploadTime(),
+                savedMetadata.getObjectKey()
         );
         messageProducerService.sendToOcrQueue(fileMessage);
         messageProducerService.sendToGenAiQueue(fileMessage);
@@ -133,7 +134,8 @@ public class FileMetadataService {
                     updatedMetadata.getAuthor(),
                     updatedMetadata.getFileType(),
                     updatedMetadata.getSize(),
-                    updatedMetadata.getUploadTime()
+                    updatedMetadata.getUploadTime(),
+                    updatedMetadata.getObjectKey()
             );
             messageProducerService.sendToOcrQueue(fileMessage);
             messageProducerService.sendToGenAiQueue(fileMessage);
