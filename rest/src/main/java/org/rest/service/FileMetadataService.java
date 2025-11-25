@@ -115,6 +115,9 @@ public class FileMetadataService {
         if (updates.getSize() != null) {
             fileMetadata.setSize(updates.getSize());
         }
+        if (updates.getObjectKey() != null) {
+            fileMetadata.setObjectKey(updates.getObjectKey());
+        }
         
         FileMetadata updatedMetadata = fileMetadataRepository.save(fileMetadata);
         log.info("File metadata updated with ID: {}", updatedMetadata.getId());
