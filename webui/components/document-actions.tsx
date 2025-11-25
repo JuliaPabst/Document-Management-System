@@ -25,6 +25,22 @@ export function DocumentActions({ document, onDelete }: DocumentActionsProps) {
   const router = useRouter()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+
+  const handleDownload = async () => {
+    setIsDownloading(true)
+    try {
+      console.log("Starting download for document:", document.id, document.filename)
+      const { apiClient } = await import("@/api/client")
+      await apiClient.downloadFile(document.id, document.filename)
+      console.log("Download completed successfully")
+    } catch (err) {
+      console.error("Download failed:", err)
+      alert(`Download failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -39,9 +55,14 @@ export function DocumentActions({ document, onDelete }: DocumentActionsProps) {
   return (
     <>
       <div className="flex gap-3">
-        <Button variant="outline" className="flex-1 gap-2 bg-transparent">
+        <Button 
+          variant="outline" 
+          className="flex-1 gap-2 bg-transparent"
+          onClick={handleDownload}
+          disabled={isDownloading}
+        >
           <Download className="h-4 w-4" />
-          Download
+          {isDownloading ? "Downloading..." : "Download"}
         </Button>
         <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} className="gap-2">
           <Trash2 className="h-4 w-4" />

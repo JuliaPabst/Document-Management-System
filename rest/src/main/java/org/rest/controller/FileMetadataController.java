@@ -110,9 +110,15 @@ public class FileMetadataController {
         FileMetadata fileMetadata = fileMetadataService.getFileMetadataById(id);
         byte[] fileContent = fileStorage.download(fileMetadata.getObjectKey());
 
+        String contentType = "application/octet-stream";
+        
+        log.info("Sending file download - filename: {}, size: {} bytes, content-type: {}", 
+                fileMetadata.getFilename(), fileContent.length, contentType);
+
         return ResponseEntity.ok()
-                .header("Content-Type", fileMetadata.getFileType())
+                .header("Content-Type", contentType)
                 .header("Content-Disposition", "attachment; filename=\"" + fileMetadata.getFilename() + "\"")
+                .header("Content-Length", String.valueOf(fileContent.length))
                 .body(fileContent);
     }
 
