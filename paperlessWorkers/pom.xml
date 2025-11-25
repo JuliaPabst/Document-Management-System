@@ -60,6 +60,13 @@
             <artifactId>minio</artifactId>
             <version>8.5.17</version>
         </dependency>
+
+        <!-- Tesseract OCR -->
+        <dependency>
+            <groupId>net.sourceforge.tess4j</groupId>
+            <artifactId>tess4j</artifactId>
+            <version>5.13.0</version>
+        </dependency>
     </dependencies>
 
     <build>
