@@ -44,8 +44,8 @@ public class FileMetadataService {
     public FileMetadata createFileMetadataWithWorkerNotification(FileMetadata fileMetadata) {
         FileMetadata savedMetadata = createFileMetadata(fileMetadata);
         
-        // Send to worker queues for processing
-        log.info("Sending file metadata with id {} to worker queues", savedMetadata.getId());
+        // Send to OCR Queue for processing (OCR will then send to GenAI)
+        log.info("Sending file metadata with id {} to OCR queue", savedMetadata.getId());
         FileMessageDto fileMessage = new FileMessageDto(
                 savedMetadata.getId(),
                 savedMetadata.getFilename(),
@@ -56,7 +56,6 @@ public class FileMetadataService {
                 savedMetadata.getObjectKey()
         );
         messageProducerService.sendToOcrQueue(fileMessage);
-        messageProducerService.sendToGenAiQueue(fileMessage);
         
         return savedMetadata;
     }
@@ -128,9 +127,9 @@ public class FileMetadataService {
     public FileMetadata updateFileMetadataWithWorkerNotification(Long id, FileMetadata updates, boolean fileReplaced) {
         FileMetadata updatedMetadata = updateFileMetadata(id, updates);
         
-        // Send to worker queues only if file was replaced
+        // Send to OCR Queue only if file was replaced (OCR will then send to GenAI)
         if (fileReplaced) {
-            log.info("File with id {} was replaced, sending to worker queues for reprocessing", updatedMetadata.getId());
+            log.info("File with id {} was replaced, sending to OCR queue for reprocessing", updatedMetadata.getId());
             FileMessageDto fileMessage = new FileMessageDto(
                     updatedMetadata.getId(),
                     updatedMetadata.getFilename(),
@@ -141,7 +140,6 @@ public class FileMetadataService {
                     updatedMetadata.getObjectKey()
             );
             messageProducerService.sendToOcrQueue(fileMessage);
-            messageProducerService.sendToGenAiQueue(fileMessage);
         } else {
             log.info("Only metadata updated for id {}, skipping worker queue", updatedMetadata.getId());
         }
