@@ -48,6 +48,9 @@ public class FileMetadata {
     @Column(name = "last_edited", nullable = false)
     private Instant lastEdited;
     
+    @Column(name = "summary", length = 5000)
+    private String summary;
+    
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();

@@ -30,4 +30,7 @@ public class FileMetadataResponseDto {
 
     @Schema(description = "Last edited time of the file", example = "2024-06-02T15:30:00Z")
     private Instant lastEdited;
+
+    @Schema(description = "AI-generated summary of the document", example = "This document contains...")
+    private String summary;
 }
