@@ -81,6 +81,11 @@ export function DocumentSummary({ document }: DocumentSummaryProps) {
           <div className="rounded-lg border border-border bg-muted/30 p-4">
             <div className="text-sm text-foreground leading-relaxed space-y-2">
               {document.summary.split('\n').map((line, index) => {
+                // Skip empty lines
+                if (!line.trim()) {
+                  return <div key={index} className="h-2" />
+                }
+
                 // Handle headings (# Heading)
                 const headingMatch = line.match(/^(#{1,3})\s+(.+)$/)
                 if (headingMatch) {
@@ -94,33 +99,35 @@ export function DocumentSummary({ document }: DocumentSummaryProps) {
                   )
                 }
 
-                // Handle unordered lists (- item or * item)
-                const listMatch = line.match(/^[\s]*[-*]\s+(.+)$/)
-                if (listMatch) {
+                // Handle numbered lists (1. item, 2. item, etc.), must come before unordered lists
+                const numberedMatch = line.match(/^(\s*)(\d+)\.\s+(.+)$/)
+                if (numberedMatch) {
+                  const indent = numberedMatch[1].length
+                  const content = numberedMatch[3]
                   return (
-                    <li key={index} className="ml-4 list-disc">
-                      {renderMarkdown(listMatch[1])}
-                    </li>
+                    <div key={index} className="flex" style={{ marginLeft: `${indent * 4}px` }}>
+                      <span className="mr-2 font-medium">{numberedMatch[2]}.</span>
+                      <span className="flex-1">{renderMarkdown(content)}</span>
+                    </div>
                   )
                 }
 
-                // Handle numbered lists (1. item)
-                const numberedMatch = line.match(/^[\s]*\d+\.\s+(.+)$/)
-                if (numberedMatch) {
+                // Handle unordered lists (- item or * item)
+                const listMatch = line.match(/^(\s*)[-*]\s+(.+)$/)
+                if (listMatch) {
+                  const indent = listMatch[1].length
                   return (
-                    <li key={index} className="ml-4 list-decimal">
-                      {renderMarkdown(numberedMatch[1])}
+                    <li key={index} className="list-disc" style={{ marginLeft: `${Math.max(16, indent * 4)}px` }}>
+                      {renderMarkdown(listMatch[2])}
                     </li>
                   )
                 }
 
                 // Regular paragraph
-                return line.trim() ? (
+                return (
                   <p key={index} className="whitespace-pre-wrap">
                     {renderMarkdown(line)}
                   </p>
-                ) : (
-                  <div key={index} className="h-2" />
                 )
               })}
             </div>
