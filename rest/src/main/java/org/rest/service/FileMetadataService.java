@@ -147,6 +147,19 @@ public class FileMetadataService {
         return updatedMetadata;
     }
     
+    public void updateSummary(Long id, String summary) {
+        log.info("Updating summary for file metadata with ID: {}", id);
+        
+        FileMetadata fileMetadata = fileMetadataRepository.findById(id)
+                .orElseThrow(() -> new FileMetadataNotFoundException("File metadata not found with ID: " + id));
+        
+        fileMetadata.setSummary(summary);
+        fileMetadataRepository.save(fileMetadata);
+        
+        log.info("Summary updated for file metadata with ID: {} (summary length: {} chars)", 
+                id, summary != null ? summary.length() : 0);
+    }
+    
     public void deleteFileMetadata(Long id) {
         log.info("Deleting file metadata with ID: {}", id);
         
