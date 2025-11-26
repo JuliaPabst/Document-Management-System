@@ -129,6 +129,11 @@ public class FileMetadataService {
         
         // Send to OCR Queue only if file was replaced (OCR will then send to GenAI)
         if (fileReplaced) {
+            // Clear the old summary so UI shows "Summary is being generated..." and triggers auto-refresh
+            updatedMetadata.setSummary(null);
+            updatedMetadata = fileMetadataRepository.save(updatedMetadata);
+            log.info("Summary cleared for file {} before reprocessing", updatedMetadata.getId());
+            
             log.info("File with id {} was replaced, sending to OCR queue for reprocessing", updatedMetadata.getId());
             FileMessageDto fileMessage = new FileMessageDto(
                     updatedMetadata.getId(),
