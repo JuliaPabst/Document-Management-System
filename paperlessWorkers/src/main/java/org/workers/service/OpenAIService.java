@@ -102,6 +102,28 @@ public class OpenAIService {
             
         } catch (Exception e) {
             log.error("Error calling OpenAI API: {}", e.getMessage(), e);
+            return generatePlaceholderSummary(ocrText);
         }
+    }
+
+    // Placeholder summary when OpenAI is not available
+    private String generatePlaceholderSummary(String ocrText) {
+        int wordCount = ocrText.split("\\s+").length;
+        int charCount = ocrText.length();
+        String preview = ocrText.substring(0, Math.min(150, ocrText.length())).trim();
+        if (ocrText.length() > 150) {
+            preview += "...";
+        }
+
+        return String.format(
+            "Document Summary (Generated without AI)\n\n" +
+            "Statistics:\n" +
+            "- Text Length: %d characters\n" +
+            "- Estimated Words: %d\n\n" +
+            "Preview:\n%s",
+            charCount,
+            wordCount,
+            preview
+        );
     }
 }
