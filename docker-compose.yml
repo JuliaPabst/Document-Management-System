@@ -103,6 +103,7 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
 
   minio:
     image: minio/minio:latest
