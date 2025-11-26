@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.workers.dto.FileMessageDto;
 import org.workers.dto.OcrResultDto;
 import org.workers.service.FileStorage;
+import org.workers.service.TesseractOcrService;
 
 import java.time.LocalDateTime;
 
@@ -19,6 +20,7 @@ public class OcrWorker {
 
     private final RabbitTemplate rabbitTemplate;
     private final FileStorage fileStorage;
+    private final TesseractOcrService tesseractOcrService;
 
     @Value("${rabbitmq.queue.genai}")
     private String genAiQueueName;
@@ -37,8 +39,8 @@ public class OcrWorker {
             log.info("OCR Worker downloaded file from MinIO: {} ({} bytes)", 
                     message.getObjectKey(), fileContent.length);
 
-            // Simulate OCR processing (skeleton only, no real implementation)
-            String extractedText = performOcrProcessing(fileContent, message.getFilename());
+            // Perform OCR processing with Tesseract
+            String extractedText = performOcrProcessing(fileContent, message.getFilename(), message.getFileType());
             log.info("OCR Worker extracted {} characters from file: {}", 
                     extractedText.length(), message.getFilename());
 
@@ -49,7 +51,7 @@ public class OcrWorker {
                     bucketName,
                     extractedText,
                     LocalDateTime.now(),
-                    "Tesseract-Dummy"
+                    tesseractOcrService.getVersion()
             );
 
             // Send directly to GenAI Queue (Pipeline Pattern)
@@ -64,18 +66,30 @@ public class OcrWorker {
         }
     }
 
-    // Simulated OCR processing
-    private String performOcrProcessing(byte[] fileContent, String filename) {
-        // TODO: Replace with Tesseract OCR
-        return String.format(
-                "[OCR Simulated Text]\n" +
-                "Document: %s\n" +
-                "Size: %d bytes\n" +
-                "Extracted at: %s\n" +
-                "Content: ...",
-                filename,
-                fileContent.length,
-                LocalDateTime.now()
-        );
+    // Perform OCR processing based on file type
+    private String performOcrProcessing(byte[] fileContent, String filename, String fileType) {
+        try {
+            if ("PDF".equalsIgnoreCase(fileType)) {
+                return tesseractOcrService.extractTextFromPdf(fileContent, filename);
+            } else if (isImageFile(fileType)) {
+                return tesseractOcrService.extractTextFromImage(fileContent, filename);
+            } else {
+                log.warn("Unsupported file type for OCR: {}", fileType);
+                return "[OCR not supported for file type: " + fileType + "]";
+            }
+        } catch (Exception e) {
+            log.error("OCR processing failed for {}: {}", filename, e.getMessage(), e);
+            return "[OCR Error: " + e.getMessage() + "]";
+        }
+    }
+
+    // Check if file type is a supported image format
+    private boolean isImageFile(String fileType) {
+        return fileType != null && 
+               (fileType.equalsIgnoreCase("PNG") || 
+                fileType.equalsIgnoreCase("JPG") || 
+                fileType.equalsIgnoreCase("JPEG") || 
+                fileType.equalsIgnoreCase("TIFF") ||
+                fileType.equalsIgnoreCase("BMP"));
     }
 }
