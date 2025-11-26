@@ -8,6 +8,7 @@ export interface FileMetadata {
   size: number
   uploadTime: string
   lastEdited: string
+  summary?: string
 }
 
 export interface ErrorResponse {
