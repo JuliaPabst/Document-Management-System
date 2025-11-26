@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.workers.dto.GenAiResultDto;
 import org.workers.dto.OcrResultDto;
+import org.workers.service.OpenAIService;
 
 import java.time.LocalDateTime;
 
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 public class GenAIWorker {
 
     private final RabbitTemplate rabbitTemplate;
+    private final OpenAIService openAIService;
 
     @Value("${rabbitmq.queue.genai.result}")
     private String resultQueueName;
@@ -53,23 +55,9 @@ public class GenAIWorker {
         }
     }
 
-    // Simulating AI summary generation
+    // Generate AI summary from OCR text using OpenAI
     private String generateSummary(String ocrText, Long documentId) {
-        // TODO: Replace with real OpenAI API call
-        int wordCount = ocrText.split("\\s+").length;
-        int charCount = ocrText.length();
-        
-        return String.format(
-                "[AI Generated Summary]\n\n" +
-                "Document Analysis for ID: %d\n" +
-                "- Extracted Text Length: %d characters\n" +
-                "- Estimated Word Count: %d words\n" +
-                "- Processing Date: %s\n\n" +
-                "Summary: ...",
-                documentId,
-                charCount,
-                wordCount,
-                LocalDateTime.now()
-        );
+        log.debug("Generating AI summary for document ID: {} with OpenAI", documentId);
+        return openAIService.generateSummary(ocrText);
     }
 }
