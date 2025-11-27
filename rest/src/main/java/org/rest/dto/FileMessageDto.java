@@ -16,4 +16,5 @@ public class FileMessageDto {
     private String fileType;
     private Long size;
     private Instant uploadTime;
+    private String objectKey;
 }

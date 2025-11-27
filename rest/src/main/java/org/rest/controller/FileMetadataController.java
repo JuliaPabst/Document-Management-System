@@ -12,12 +12,14 @@ import org.rest.dto.FileUploadDto;
 import org.rest.mapper.FileMetadataMapper;
 import org.rest.model.FileMetadata;
 import org.rest.service.FileMetadataService;
+import org.rest.service.FileStorage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -29,6 +31,7 @@ public class FileMetadataController {
 
     private final FileMetadataService fileMetadataService;
     private final FileMetadataMapper fileMetadataMapper;
+    private final FileStorage fileStorage;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload file with metadata", description = "Upload a file and create metadata entry")
@@ -49,19 +52,32 @@ public class FileMetadataController {
             throw new IllegalArgumentException("File cannot be empty");
         }
 
-        // Create DTO and use MapStruct to map to entity
-        FileUploadDto uploadDto = new FileUploadDto();
-        uploadDto.setAuthor(author);
-        FileMetadata fileMetadata = fileMetadataMapper.toEntity(uploadDto, file);
+        try {
+            // Create DTO and use MapStruct to map to entity
+            FileUploadDto uploadDto = new FileUploadDto();
+            uploadDto.setAuthor(author);
+            FileMetadata fileMetadata = fileMetadataMapper.toEntity(uploadDto, file);
 
-        // Save metadata and notify workers (file storage logic to be implemented)
-        FileMetadata savedMetadata = fileMetadataService.createFileMetadataWithWorkerNotification(fileMetadata);
+            // Generate unique object key for MinIO (using timestamp + filename for uniqueness)
+            String objectKey = String.format("%d-%s", System.currentTimeMillis(), file.getOriginalFilename());
+            fileMetadata.setObjectKey(objectKey);
 
-        // TODO: Store the actual file bytes (file.getBytes()) to a storage system
-        log.info("File metadata created with ID: {}. File storage not yet implemented.", savedMetadata.getId());
+            // Upload file to MinIO
+            byte[] fileBytes = file.getBytes();
+            String contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
+            fileStorage.upload(objectKey, fileBytes, contentType);
+            log.info("File uploaded to MinIO with object key: {}", objectKey);
 
-        FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(savedMetadata);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+            // Save metadata and notify workers
+            FileMetadata savedMetadata = fileMetadataService.createFileMetadataWithWorkerNotification(fileMetadata);
+            log.info("File metadata created with ID: {}, objectKey: {}", savedMetadata.getId(), savedMetadata.getObjectKey());
+
+            FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(savedMetadata);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (IOException e) {
+            log.error("Failed to read file bytes: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to process file upload", e);
+        }
     }
 
     @GetMapping("/{id}")
@@ -78,6 +94,32 @@ public class FileMetadataController {
         FileMetadata fileMetadata = fileMetadataService.getFileMetadataById(id);
         FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(fileMetadata);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/download")
+    @Operation(summary = "Download file content", description = "Download the actual file content from MinIO storage")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "File downloaded successfully"),
+            @ApiResponse(responseCode = "404", description = "File or file metadata not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<byte[]> downloadFile(
+            @Parameter(description = "File metadata ID") @PathVariable Long id) {
+        log.info("Received request to download file with ID: {}", id);
+
+        FileMetadata fileMetadata = fileMetadataService.getFileMetadataById(id);
+        byte[] fileContent = fileStorage.download(fileMetadata.getObjectKey());
+
+        String contentType = "application/octet-stream";
+        
+        log.info("Sending file download - filename: {}, size: {} bytes, content-type: {}", 
+                fileMetadata.getFilename(), fileContent.length, contentType);
+
+        return ResponseEntity.ok()
+                .header("Content-Type", contentType)
+                .header("Content-Disposition", "attachment; filename=\"" + fileMetadata.getFilename() + "\"")
+                .header("Content-Length", String.valueOf(fileContent.length))
+                .body(fileContent);
     }
 
     @GetMapping
@@ -124,29 +166,53 @@ public class FileMetadataController {
             @Parameter(description = "Author of the document (optional)") @RequestParam(value = "author", required = false) String author) {
         log.info("Received request to update file metadata with ID: {}", id);
 
-        FileMetadata updates = new FileMetadata();
-        boolean fileReplaced = false;
-        
-        // If a new file is uploaded, extract metadata from it
-        if (file != null && !file.isEmpty()) {
-            log.info("Replacing file with new upload: {}", file.getOriginalFilename());
-            updates.setFilename(file.getOriginalFilename());
-            updates.setFileType(fileMetadataMapper.extractExtensionUpper(file.getOriginalFilename()));
-            updates.setSize(file.getSize());
-            fileReplaced = true;
-            // TODO: Store the actual file bytes (file.getBytes()) to replace the old file
+        try {
+            FileMetadata updates = new FileMetadata();
+            boolean fileReplaced = false;
+            
+            // If a new file is uploaded, replace it in MinIO
+            if (file != null && !file.isEmpty()) {
+                log.info("Replacing file with new upload: {}", file.getOriginalFilename());
+                
+                // Get existing metadata to retrieve old objectKey
+                FileMetadata existingMetadata = fileMetadataService.getFileMetadataById(id);
+                String oldObjectKey = existingMetadata.getObjectKey();
+                
+                // Generate new unique object key
+                String newObjectKey = String.format("%d-%s", System.currentTimeMillis(), file.getOriginalFilename());
+                
+                // Upload new file to MinIO
+                byte[] fileBytes = file.getBytes();
+                String contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
+                fileStorage.upload(newObjectKey, fileBytes, contentType);
+                log.info("New file uploaded to MinIO with object key: {}", newObjectKey);
+                
+                // Delete old file from MinIO
+                fileStorage.delete(oldObjectKey);
+                log.info("Old file deleted from MinIO: {}", oldObjectKey);
+                
+                // Update metadata fields
+                updates.setFilename(file.getOriginalFilename());
+                updates.setFileType(fileMetadataMapper.extractExtensionUpper(file.getOriginalFilename()));
+                updates.setSize(file.getSize());
+                updates.setObjectKey(newObjectKey);
+                fileReplaced = true;
+            }
+            
+            // Update author if provided
+            if (author != null && !author.trim().isEmpty()) {
+                updates.setAuthor(author.trim());
+            }
+            
+            // Update metadata and notify workers if file was replaced
+            FileMetadata updatedMetadata = fileMetadataService.updateFileMetadataWithWorkerNotification(id, updates, fileReplaced);
+            
+            FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(updatedMetadata);
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            log.error("Failed to read file bytes during update: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to process file update", e);
         }
-        
-        // Update author if provided
-        if (author != null && !author.trim().isEmpty()) {
-            updates.setAuthor(author.trim());
-        }
-        
-        // Update metadata and notify workers if file was replaced
-        FileMetadata updatedMetadata = fileMetadataService.updateFileMetadataWithWorkerNotification(id, updates, fileReplaced);
-        
-        FileMetadataResponseDto response = fileMetadataMapper.toResponseDto(updatedMetadata);
-        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
@@ -160,7 +226,18 @@ public class FileMetadataController {
             @Parameter(description = "File metadata ID") @PathVariable Long id) {
         log.info("Received request to delete file metadata with ID: {}", id);
 
+        // Get metadata to retrieve objectKey before deleting from DB
+        FileMetadata fileMetadata = fileMetadataService.getFileMetadataById(id);
+        String objectKey = fileMetadata.getObjectKey();
+        
+        // Delete from DB
         fileMetadataService.deleteFileMetadata(id);
+        log.info("File metadata deleted from database: {}", id);
+        
+        // Delete from MinIO
+        fileStorage.delete(objectKey);
+        log.info("File deleted from MinIO: {}", objectKey);
+        
         return ResponseEntity.noContent().build();
     }
 }

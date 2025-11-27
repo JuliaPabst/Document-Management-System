@@ -11,6 +11,11 @@ export function useDocumentVM(id: number) {
 
   const { data, error, isLoading, mutate } = useSWR(["document", id], () => apiClient.getFileById(id), {
     revalidateOnFocus: false,
+    refreshInterval: (data) => {
+      // Auto-refresh every 5 seconds if summary is not yet generated
+      const hasSummary = data?.summary && data.summary.trim().length > 0
+      return hasSummary ? 0 : 5000
+    },
   })
 
   const document = optimisticData || data

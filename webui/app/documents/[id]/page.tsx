@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { DocumentMetadata } from "@/components/document-metadata"
 import { DocumentPreview } from "@/components/document-preview"
 import { DocumentActions } from "@/components/document-actions"
-import { DocumentOCRText } from "@/components/document-ocr-text"
+import { DocumentSummary } from "@/components/document-ocr-text"
 import { useDocumentVM } from "@/viewmodels/use-document-vm"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
@@ -59,7 +59,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <DocumentPreview document={document} />
-          <DocumentOCRText />
+          <DocumentSummary document={document} />
         </div>
 
         <div className="space-y-6">
