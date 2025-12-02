@@ -13,6 +13,8 @@ import java.util.Optional;
 import java.util.Collections;
 import java.util.List;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class FileMetadataServiceTest {
@@ -214,7 +216,8 @@ public class FileMetadataServiceTest {
         assertEquals(1L, result.getId());
         verify(fileMetadataRepository).save(any(FileMetadata.class));
         verify(messageProducerService).sendToOcrQueue(any());
-        verify(messageProducerService).sendToGenAiQueue(any());
+        // Note: sendToGenAiQueue is NOT called here - OCR worker handles that (pipeline pattern)
+        verify(messageProducerService, never()).sendToGenAiQueue(any());
     }
 
     @Test
@@ -239,9 +242,11 @@ public class FileMetadataServiceTest {
 
         // assert
         assertNotNull(result);
-        verify(fileMetadataRepository).save(any(FileMetadata.class));
+        // Note: save is called twice - once in updateFileMetadata, once to clear the summary
+        verify(fileMetadataRepository, times(2)).save(any(FileMetadata.class));
         verify(messageProducerService).sendToOcrQueue(any());
-        verify(messageProducerService).sendToGenAiQueue(any());
+        // Note: sendToGenAiQueue is NOT called here - OCR worker handles that (pipeline pattern)
+        verify(messageProducerService, never()).sendToGenAiQueue(any());
     }
 
     @Test
