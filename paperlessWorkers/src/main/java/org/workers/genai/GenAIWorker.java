@@ -30,7 +30,8 @@ public class GenAIWorker {
 
         try {
             // Generate AI summary from OCR text
-            String summary = generateSummary(ocrResult.getExtractedText(), ocrResult.getDocumentId());
+            log.debug("Generating AI summary for document ID: {} with OpenAI", ocrResult.getDocumentId());
+            String summary = openAIService.generateSummary(ocrResult.getExtractedText());
             log.info("GenAI Worker generated summary ({} chars) for document ID: {}", 
                     summary.length(), ocrResult.getDocumentId());
 
@@ -53,11 +54,5 @@ public class GenAIWorker {
                     ocrResult.getDocumentId(), e.getMessage(), e);
             // TODO: proper error handling and retries
         }
-    }
-
-    // Generate AI summary from OCR text using OpenAI
-    private String generateSummary(String ocrText, Long documentId) {
-        log.debug("Generating AI summary for document ID: {} with OpenAI", documentId);
-        return openAIService.generateSummary(ocrText);
     }
 }
