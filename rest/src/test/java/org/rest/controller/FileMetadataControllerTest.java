@@ -6,6 +6,7 @@ import org.rest.exception.GlobalExceptionHandler;
 import org.rest.mapper.FileMetadataMapper;
 import org.rest.model.FileMetadata;
 import org.rest.service.FileMetadataService;
+import org.rest.service.FileStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -18,6 +19,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -38,6 +40,9 @@ class FileMetadataControllerTest {
 
     @MockitoBean
     private FileMetadataMapper fileMetadataMapper;
+
+    @MockitoBean
+    private FileStorage fileStorage;
 
     @Test
     void testUploadFile_Multipart_Returns201() throws Exception {
@@ -64,8 +69,9 @@ class FileMetadataControllerTest {
         saved.setUploadTime(now);
         saved.setLastEdited(now);
 
-        // Mapper/Service stubs
+        // Mapper/Service/Storage stubs
         when(fileMetadataMapper.toEntity(any(), any())).thenReturn(mapped);
+        doNothing().when(fileStorage).upload(anyString(), any(byte[].class), anyString());
         when(fileMetadataService.createFileMetadataWithWorkerNotification(any(FileMetadata.class))).thenReturn(saved);
         when(fileMetadataMapper.toResponseDto(any(FileMetadata.class))).thenAnswer(inv -> {
             FileMetadata fm = inv.getArgument(0);
@@ -168,6 +174,10 @@ class FileMetadataControllerTest {
         );
         Instant now = Instant.now();
 
+        FileMetadata existing = new FileMetadata();
+        existing.setId(1L);
+        existing.setObjectKey("old-objectKey");
+
         FileMetadata updated = new FileMetadata();
         updated.setId(1L);
         updated.setFilename("updated.pdf");
@@ -177,7 +187,10 @@ class FileMetadataControllerTest {
         updated.setUploadTime(now);
         updated.setLastEdited(now);
 
+        when(fileMetadataService.getFileMetadataById(1L)).thenReturn(existing);
         when(fileMetadataMapper.extractExtensionUpper("updated.pdf")).thenReturn("PDF");
+        doNothing().when(fileStorage).upload(anyString(), any(byte[].class), anyString());
+        doNothing().when(fileStorage).delete(anyString());
         when(fileMetadataService.updateFileMetadataWithWorkerNotification(eq(1L), any(FileMetadata.class), eq(true))).thenReturn(updated);
         when(fileMetadataMapper.toResponseDto(any(FileMetadata.class))).thenAnswer(inv -> {
             FileMetadata fm = inv.getArgument(0);
@@ -253,7 +266,13 @@ class FileMetadataControllerTest {
 
     @Test
     void testDeleteFileMetadata() throws Exception {
+        FileMetadata existing = new FileMetadata();
+        existing.setId(1L);
+        existing.setObjectKey("test-objectKey");
+
+        when(fileMetadataService.getFileMetadataById(1L)).thenReturn(existing);
         doNothing().when(fileMetadataService).deleteFileMetadata(1L);
+        doNothing().when(fileStorage).delete(anyString());
 
         mockMvc.perform(delete("/api/v1/files/1"))
                 .andExpect(status().isNoContent())
