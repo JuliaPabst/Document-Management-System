@@ -62,4 +62,41 @@ export class HttpClient {
   async delete(path: string): Promise<void> {
     await this.client.delete(path)
   }
+
+  async downloadFile(path: string, filename: string): Promise<void> {
+    const response = await this.client.get(path, {
+      responseType: 'blob',
+    })
+    
+    // Get content type from response headers
+    const contentType = response.headers['content-type'] || 'application/octet-stream'
+    
+    // Extract filename from Content-Disposition header if available
+    const contentDisposition = response.headers['content-disposition']
+    let downloadFilename = filename
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+      if (filenameMatch && filenameMatch[1]) {
+        downloadFilename = filenameMatch[1].replace(/['"]/g, '')
+      }
+    }
+    
+    // Create blob with proper content type
+    const blob = new Blob([response.data], { type: contentType })
+    const url = window.URL.createObjectURL(blob)
+    
+    // Create temporary link and trigger download
+    const a = document.createElement('a')
+    a.style.display = 'none'
+    a.href = url
+    a.download = downloadFilename
+    document.body.appendChild(a)
+    a.click()
+    
+    // Cleanup
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    }, 100)
+  }
 }

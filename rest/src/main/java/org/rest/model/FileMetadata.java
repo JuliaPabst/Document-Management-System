@@ -38,11 +38,18 @@ public class FileMetadata {
     @Column(name = "size", nullable = false)
     private Long size;
     
+    @NotBlank(message = "Object key is required")
+    @Column(name = "object_key", nullable = false, unique = true)
+    private String objectKey;
+    
     @Column(name = "upload_time", nullable = false)
     private Instant uploadTime;
     
     @Column(name = "last_edited", nullable = false)
     private Instant lastEdited;
+    
+    @Column(name = "summary", length = 5000)
+    private String summary;
     
     @PrePersist
     protected void onCreate() {
