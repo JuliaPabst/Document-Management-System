@@ -48,7 +48,9 @@ A Document management system for archiving documents in a FileStore, with automa
   - OcrWorker listens to ocr-worker-queue, downloads files from MinIO, performs OCR, sends results directly to genai-worker-queue
 - **Docker Configuration**: Extended docker-compose.yml to include MinIO and OCR-worker containers
 - **Logging**: Added logging at critical points (upload, OCR processing, queue communication)
-- **TODO**: Add unit tests for OCR service and MinIO integration
+- **Unit tests**: 
+  - Added for OCR service and OCR Worker message handling 
+  - Reworked outdated FileMetadataController and FileMetadataService tests with new data structures 
 
 ## Sprint 5: Generative AI Integration
 - **GenAI Worker Service**: GenAI processing service in paperlessWorkers application
