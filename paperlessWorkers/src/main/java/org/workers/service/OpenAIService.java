@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 
 // Service for generating document summaries using OpenAI API
 @Service
@@ -31,6 +32,8 @@ public class OpenAIService {
     private double temperature;
     @Value("${openai.max.tokens:300}")
     private int maxTokens;
+    @Value("${openai.timeout.seconds:30}")
+    private int timeoutSeconds;
 
     public OpenAIService() {
         this.objectMapper = new ObjectMapper();
@@ -82,6 +85,7 @@ public class OpenAIService {
                     .uri(URI.create(apiUrl))
                     .header("Content-Type", "application/json")
                     .header("Authorization", "Bearer " + apiKey)
+                    .timeout(Duration.ofSeconds(timeoutSeconds))
                     .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(requestBody)))
                     .build();
             
@@ -100,6 +104,9 @@ public class OpenAIService {
             log.info("Successfully generated summary using OpenAI (length: {} chars)", summary.length());
             return summary.trim();
             
+        } catch (java.net.http.HttpTimeoutException e) {
+            log.error("OpenAI API request timed out after {} seconds for text length: {} chars", timeoutSeconds, ocrText.length());
+            return generatePlaceholderSummary(ocrText);
         } catch (Exception e) {
             log.error("Error calling OpenAI API: {}", e.getMessage(), e);
             return generatePlaceholderSummary(ocrText);
