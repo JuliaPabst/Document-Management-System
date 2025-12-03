@@ -98,14 +98,14 @@ public class TesseractOcrService {
 
 		// Ghostscript command to convert PDF to PNG images at 300 DPI
 		List<String> command = List.of(
-				"gs",	                    // Ghostscript executable
-				"-dSAFER",	                // Safe mode
-				"-dBATCH",	                // Exit after processing
-				"-dNOPAUSE",	            // No pause after each page
-				"-sDEVICE=png16m",	        // Output device: 24-bit color PNG
-				"-r300",	                // 300 DPI resolution
-				"-sOutputFile=" + outputPattern,	// Output: page-1.png, page-2.png, ...
-				pdfPath.toString());	    // Input PDF file
+				"gs",	                    					// Ghostscript executable
+				"-dSAFER",	                				// Safe mode
+				"-dBATCH",	                				// Exit after processing
+				"-dNOPAUSE",	            					// No pause after each page
+				"-sDEVICE=png16m",	        				// Output device: 24-bit color PNG
+				"-r300",	                					// 300 DPI resolution
+				"-sOutputFile=" + outputPattern,		// Output: page-1.png, page-2.png, ...
+				pdfPath.toString());	    					// Input PDF file
 
 		log.debug("Executing Ghostscript command: {}", String.join(" ", command));
 

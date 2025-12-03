@@ -52,7 +52,6 @@ public class GenAIWorker {
         } catch (Exception e) {
             log.error("GenAI Worker failed to process document ID {}: {}", 
                     ocrResult.getDocumentId(), e.getMessage(), e);
-            // TODO: proper error handling and retries
         }
     }
 }

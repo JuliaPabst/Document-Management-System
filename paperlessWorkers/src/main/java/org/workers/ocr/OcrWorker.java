@@ -62,7 +62,6 @@ public class OcrWorker {
         } catch (Exception e) {
             log.error("OCR Worker failed to process document ID {}: {}", 
                     message.getId(), e.getMessage(), e);
-            // TODO: proper error handling and retries
         }
     }
 

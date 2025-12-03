@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
+// Service for downloading and checking existence of files in MinIO
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -20,6 +21,7 @@ public class MinIOFileStorage implements FileStorage {
 	private final MinioClient minioClient;
 	private final MinIOConfig minioConfig;
 
+	// Download object/file from MinIO as byte array
 	@Override
 	public byte[] download(String objectKey) {
 		try {
@@ -32,6 +34,7 @@ public class MinIOFileStorage implements FileStorage {
 							.object(objectKey)
 							.build())) {
 
+				// Read all bytes from the stream into memory
 				byte[] content = stream.readAllBytes();
 				log.info("File downloaded successfully from MinIO: {} ({} bytes)", objectKey, content.length);
 				return content;
@@ -49,6 +52,7 @@ public class MinIOFileStorage implements FileStorage {
 		}
 	}
 
+	// Check if object exists in MinIO, using statObject
 	@Override
 	public boolean exists(String objectKey) {
 		try {
