@@ -15,6 +15,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -47,6 +48,9 @@ public class OpenAIService {
     
     @Value("${openai.max.tokens:500}")
     private int maxTokens;
+
+    @Value("${openai.timeout.seconds:30}")
+    private int timeoutSeconds;
 
     public OpenAIService(FileMetadataService fileMetadataService, ObjectMapper objectMapper) {
         this.fileMetadataService = fileMetadataService;
@@ -103,6 +107,7 @@ public class OpenAIService {
                     .uri(URI.create(apiUrl))
                     .header("Content-Type", "application/json")
                     .header("Authorization", "Bearer " + apiKey)
+                    .timeout(Duration.ofSeconds(timeoutSeconds))
                     .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(requestBody)))
                     .build();
             
@@ -119,6 +124,9 @@ public class OpenAIService {
             
             return assistantMessage;
             
+        } catch (java.net.http.HttpTimeoutException e) {
+            logger.error("OpenAI API request timed out after {} seconds for chat request", timeoutSeconds);
+            throw new RuntimeException("The request took too long to process. Please try again with a simpler question.");
         } catch (Exception e) {
             logger.error("Error calling OpenAI API", e);
             throw new RuntimeException("An error occurred while processing your request: " + e.getMessage(), e);
