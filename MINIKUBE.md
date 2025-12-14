@@ -132,7 +132,11 @@ kubectl port-forward -n paperless svc/rabbitmq 15672:15672
     minikube service grafana -n paperless
     ```
 
-    *Or via Port-Forward: `kubectl port-forward -n paperless svc/grafana 3002:3002` (http://localhost:3002)*
+    **Or via Port Forwarding:**
+    ```powershell
+    # Port-Forward (http://localhost:3002)
+    kubectl port-forward -n paperless svc/grafana 3002:3002
+    ```
 
 2.  **Login:**
 
