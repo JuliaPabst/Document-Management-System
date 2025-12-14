@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Spring Boot REST API
+  - job_name: 'spring-boot-rest'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['rest:8081']
+        labels:
+          application: 'paperless-rest'
+          environment: 'docker'
