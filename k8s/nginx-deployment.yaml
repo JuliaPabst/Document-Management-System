@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Program Files\Kubernetes\Kompose\kompose.exe convert -f ../docker-compose.yml
+    kompose.version: 1.37.0 (fb0539e64)
+  labels:
+    io.kompose.service: nginx
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: nginx
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Program Files\Kubernetes\Kompose\kompose.exe convert -f ../docker-compose.yml
+        kompose.version: 1.37.0 (fb0539e64)
+      labels:
+        io.kompose.service: nginx
+    spec:
+      containers:
+        - image: nginx:alpine
+          livenessProbe:
+            exec:
+              command:
+                - wget
+                - --no-verbose
+                - --tries=1
+                - --spider
+                - http://127.0.0.1:80
+            failureThreshold: 3
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: nginx
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /etc/nginx/conf.d/default.conf
+              name: nginx-cm0
+              readOnly: true
+              subPath: default.conf
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            items:
+              - key: default.conf
+                path: default.conf
+            name: nginx-cm0
+          name: nginx-cm0

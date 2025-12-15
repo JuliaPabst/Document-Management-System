@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Program Files\Kubernetes\Kompose\kompose.exe convert -f ../docker-compose.yml
+    kompose.version: 1.37.0 (fb0539e64)
+  labels:
+    io.kompose.service: rabbitmq
+  name: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: rabbitmq
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Program Files\Kubernetes\Kompose\kompose.exe convert -f ../docker-compose.yml
+        kompose.version: 1.37.0 (fb0539e64)
+      labels:
+        io.kompose.service: rabbitmq
+    spec:
+      containers:
+        - image: rabbitmq:3-management
+          livenessProbe:
+            exec:
+              command:
+                - rabbitmq-diagnostics
+                - -q
+                - ping
+            failureThreshold: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: rabbitmq
+          ports:
+            - containerPort: 5672
+              protocol: TCP
+            - containerPort: 15672
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/rabbitmq
+              name: rabbitmq-data
+            - mountPath: /etc/rabbitmq/rabbitmq.conf
+              name: rabbitmq-cm1
+              readOnly: true
+              subPath: rabbitmq.conf
+            - mountPath: /etc/rabbitmq/definitions.json
+              name: rabbitmq-cm2
+              readOnly: true
+              subPath: definitions.json
+      restartPolicy: Always
+      volumes:
+        - name: rabbitmq-data
+          persistentVolumeClaim:
+            claimName: rabbitmq-data
+        - configMap:
+            items:
+              - key: rabbitmq.conf
+                path: rabbitmq.conf
+            name: rabbitmq-cm1
+          name: rabbitmq-cm1
+        - configMap:
+            items:
+              - key: definitions.json
+                path: definitions.json
+            name: rabbitmq-cm2
+          name: rabbitmq-cm2

@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Program Files\Kubernetes\Kompose\kompose.exe convert -f ../docker-compose.yml
+    kompose.version: 1.37.0 (fb0539e64)
+  labels:
+    io.kompose.service: grafana
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: grafana
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Program Files\Kubernetes\Kompose\kompose.exe convert -f ../docker-compose.yml
+        kompose.version: 1.37.0 (fb0539e64)
+      labels:
+        io.kompose.service: grafana
+    spec:
+      containers:
+        - env:
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: grafana-admin-password
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: grafana-admin-user
+            - name: GF_USERS_ALLOW_SIGN_UP
+              value: "false"
+          image: grafana/grafana:latest
+          livenessProbe:
+            exec:
+              command:
+                - wget
+                - --no-verbose
+                - --tries=1
+                - --spider
+                - http://localhost:3000/api/health
+            failureThreshold: 3
+            periodSeconds: 10
+            timeoutSeconds: 5
+          name: grafana
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/grafana
+              name: grafana-data
+            - mountPath: /etc/grafana/provisioning/datasources
+              name: grafana-datasources
+            - mountPath: /etc/grafana/provisioning/dashboards/dashboard.yml
+              name: grafana-dashboard-config
+              subPath: dashboard.yml
+            - mountPath: /etc/grafana/provisioning/dashboards/spring-boot-dashboard.json
+              name: grafana-dashboard-springboot
+              subPath: spring-boot-dashboard.json
+      restartPolicy: Always
+      volumes:
+        - name: grafana-data
+          persistentVolumeClaim:
+            claimName: grafana-data
+        - name: grafana-datasources
+          configMap:
+            name: grafana-datasources
+        - name: grafana-dashboard-config
+          configMap:
+            name: grafana-dashboard-config
+        - name: grafana-dashboard-springboot
+          configMap:
+            name: grafana-dashboard-springboot

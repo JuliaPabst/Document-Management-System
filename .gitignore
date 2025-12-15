@@ -20,3 +20,9 @@ target/
 .env
 .env.local
 .env.*.local
+
+# Kompose helper file
+k8s/fix-image-pull-policy.ps1
+
+# Kubernetes secrets
+k8s/secrets.yaml

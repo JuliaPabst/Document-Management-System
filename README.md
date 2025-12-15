@@ -68,7 +68,23 @@ A Document management system for archiving documents in a FileStore, with automa
   - Added advanced markdown rendering: bold (**text**), italic (*text*), inline code (`code`), headings, numbered lists, bullet points
 - **Configuration**: All OpenAI settings externalized to application.properties and .env file
 - **Error Handling & Logging**: Exception handling for API failures, logging for GenAI processing, API calls, and database updates
-- **TODO**: Add unit tests for GenAI service and summary generation
+
+### Optional/Additional Features (Sprint 5)
+- **CI/CD Pipeline**: GitHub Actions workflows
+  - Added Maven build jobs for `rest` and `paperlessWorkers` services
+  - Automated testing and build verification on push/pull requests
+- **Health Checks & Monitoring**:
+  - Added health checks to all services in docker-compose.yml
+  - Integrated Spring Boot Actuator for REST service monitoring endpoints
+  - Configured Prometheus (port 9091) for metrics collection from Spring Boot
+  - Deployed Grafana (port 3003) with pre-configured Spring Boot 3.x Statistics Dashboard
+  - **View Grafana Dashboard**: `http://localhost:3003`
+  - Dashboard displays: CPU/Memory usage, JVM statistics, HTTP metrics, database connection pool, log events
+- **Kubernetes Deployment**: 
+  - Converted docker-compose.yml to Kubernetes manifests using Kompose
+  - Added automated deployment script (`k8s/deploy.ps1`) for easy Minikube deployment
+  - **Full Kubernetes Guide**: See [MINIKUBE.md](MINIKUBE.md) for complete setup instructions
+  - Separate Grafana instance for Kubernetes monitoring (port 3002)
 
 ## Architecture Overview
 ```
