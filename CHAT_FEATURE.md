@@ -1,7 +1,7 @@
 # Chat Feature - AI Document Assistant
 
 ## Overview
-The chat feature integrates ChatGPT into your Document Management System, allowing users to interact with an AI assistant that has access to all document metadata. Users can ask questions about their documents, search for files, and get insights about their document collection.
+The chat feature integrates ChatGPT into the Document Management System, allowing users to interact with an AI assistant that has access to all document metadata. Users can ask questions about their documents, search for files, and get insights about their document collection.
 
 ## Setup
 

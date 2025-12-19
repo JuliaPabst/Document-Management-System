@@ -1,7 +1,15 @@
 # Document-Management-System
 A Document management system for archiving documents in a FileStore, with automatic OCR (queue for OC-recognition), automatic summary generation (using Gen-AI), tagging and full text search (ElasticSearch).
 
-## Sprint 1
+Use the [.env.template](.env.template) for creating your .env file (simply add your OpenAI API key).
+
+## Additional Usecase: AI Chatbot Integration
+- The chat feature integrates ChatGPT into the Document Management System
+- Allows users to interact with an AI assistant that has access to all document metadata
+- Users can ask questions about their documents, search for files, and get insights about their document collection
+- See [CHAT_FEATURE.md](CHAT_FEATURE.md)
+
+## Sprint 1: Project-Setup, REST API, DAL (with Mapping)
 - Scaffolded the REST API project structure.
 - Implemented initial endpoints for document management.
 - Integrated PostgreSQL as the database and configured connection settings.
@@ -13,12 +21,12 @@ A Document management system for archiving documents in a FileStore, with automa
 - Used Springboot, Lombok and Mapstruct frameworks
 - Decided to use Codefirst approach 
 
-## Sprint 2
+## Sprint 2: (Web-)UI
 - Add webui service and nginx service as proxy between ui and rest service
 - Add webui with functionality that is described in README.md in webui folder
 - Add special feature: AI Chatbot Integration: Look at CHAT_FEATURE.md file to integrate chat functionality locally by adding your own OPENAI API key
 
-## Sprint 3
+## Sprint 3: Queues integration (RabbitMQ)
 - Implemented RabbitMQ as a standalone component for asynchronous message processing
 - Created message queuing infrastructure with 4 queues: ocr-worker-queue, genai-worker-queue, ocr-result-queue, genai-result-queue
 - Built paperlessWorkers Spring Boot application with separate OCR and GenAI worker services
@@ -52,7 +60,7 @@ A Document management system for archiving documents in a FileStore, with automa
   - Added for OCR service and OCR Worker message handling 
   - Reworked outdated FileMetadataController and FileMetadataService tests with new data structures 
 
-## Sprint 5: Generative AI Integration
+## Sprint 5: Generative AI-Integration
 - **GenAI Worker Service**: GenAI processing service in paperlessWorkers application
   - Implemented OpenAIService for AI summary generation using OpenAI Chat Completions API
   - Configured to use gpt-4o-mini model with temperature 0.3 and max tokens 300
