@@ -9,6 +9,13 @@ Use the [.env.template](.env.template) for creating your .env file (simply add y
 - Users can ask questions about their documents, search for files, and get insights about their document collection
 - See [CHAT_FEATURE.md](CHAT_FEATURE.md)
 
+## Additional Usecase: Email Ingestion
+The Email Ingestion Service acts as the automated entry point for the Document Management System via IMAP/S.
+* **Automated Capture:** Automatically fetches emails, decoding complex filenames (MIME/UTF-8) and extracting attachments like PDFs or images.
+* **Validation & Filtering:** Enforces strict security rules (file types, size limits) before any document enters the system.
+* **Pipeline Integration:** Uploads validated files to object storage (MinIO) and instantly triggers the downstream OCR and GenAI worker pipelines for analysis.
+- See [EMAIL_INGESTION_SETUP.md](EMAIL_INGESTION_SETUP.md)
+
 ## Sprint 1: Project-Setup, REST API, DAL (with Mapping)
 - Scaffolded the REST API project structure.
 - Implemented initial endpoints for document management.
