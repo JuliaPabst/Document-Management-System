@@ -1,7 +1,6 @@
 package org.emailingestion.service;
 
 import jakarta.mail.BodyPart;
-import jakarta.mail.Multipart;
 import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;

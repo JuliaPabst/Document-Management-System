@@ -5,7 +5,6 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
-import org.emailingestion.model.FileMetadata;
 import org.emailingestion.service.AttachmentProcessor;
 import org.emailingestion.service.EmailPollingService;
 import org.emailingestion.service.FileMetadataService;
