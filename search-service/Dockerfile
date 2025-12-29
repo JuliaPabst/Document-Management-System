@@ -2,18 +2,20 @@ FROM amazoncorretto:21-alpine
 
 WORKDIR /app
 
-# Copy maven wrapper and pom.xml
-COPY .mvn/ .mvn
-COPY mvnw pom.xml ./
+# Install Maven
+RUN apk add --no-cache maven
+
+# Copy pom.xml
+COPY pom.xml ./
 
 # Download dependencies
-RUN ./mvnw dependency:go-offline
+RUN mvn dependency:go-offline
 
 # Copy source code
 COPY src ./src
 
 # Build application
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 # Run application
 ENTRYPOINT ["java", "-jar", "target/search-service.jar"]
