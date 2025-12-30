@@ -28,6 +28,40 @@ export interface SearchParams {
   search?: string
   author?: string
   fileType?: string
+  searchField?: string
+}
+
+export interface SearchRequest {
+  query: string
+  author?: string
+  fileType?: string
+  searchField?: string
+  page?: number
+  size?: number
+  sortBy?: string
+  sortOrder?: string
+}
+
+export interface SearchResult {
+  documentId: number
+  filename: string
+  author: string
+  fileType: string
+  size: number
+  objectKey: string
+  uploadTime: string
+  summary?: string
+  score?: number
+  highlightedText?: string
+}
+
+export interface SearchResponse {
+  results: SearchResult[]
+  totalHits: number
+  page: number
+  size: number
+  totalPages: number
+  searchTimeMs: number
 }
 
 export interface UpdateRequest {
