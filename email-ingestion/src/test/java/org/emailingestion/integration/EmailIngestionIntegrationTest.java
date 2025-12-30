@@ -95,7 +95,7 @@ class EmailIngestionIntegrationTest {
                 argThat(metadata ->
                         metadata.getFilename().equals("contract-2025.pdf") &&
                                 metadata.getAuthor().equals("john.doe@example.com") &&
-                                metadata.getFileType().equals("pdf") &&
+                                metadata.getFileType().equals("PDF") &&
                                 metadata.getSize() == pdfContent.length
                 )
         );
@@ -251,7 +251,7 @@ class EmailIngestionIntegrationTest {
         verify(fileMetadataService, times(1)).createFileMetadataWithWorkerNotification(
                 argThat(metadata ->
                         metadata.getFilename().equals("logo.png") &&
-                                metadata.getFileType().equals("png")
+                                metadata.getFileType().equals("PNG")
                 )
         );
     }
