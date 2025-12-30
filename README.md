@@ -101,17 +101,56 @@ The Email Ingestion Service acts as the automated entry point for the Document M
   - **Full Kubernetes Guide**: See [MINIKUBE.md](MINIKUBE.md) for complete setup instructions
   - Separate Grafana instance for Kubernetes monitoring (port 3002)
 
+## Sprint 6: Elasticsearch Integration & Advanced Search
+- **Search Service**: Dedicated microservice for Elasticsearch operations
+  - ElasticsearchService with CRUD operations (index, partial update, delete, search)
+  - REST proxy endpoint `/api/v1/documents/search` for WebUI integration
+  - Configured Elasticsearch on port 9200 with "documents" index
+  - DocumentIndexingListener consumes from `search-indexing-queue`
+- **Indexing Pipeline**: Complete document lifecycle synchronization
+  - Extended `GenAiResultDto` with `extractedText` (OCR result passed through from GenAI Worker)
+  - Created `DocumentIndexDto` with all searchable fields (filename, author, extractedText, summary, metadata)
+  - GenAIResultListener sends complete document data to `search-indexing-queue` after processing
+- **Update/Delete Synchronization**: Real-time Elasticsearch sync
+  - `DocumentUpdateEventDto` with EventType enum (UPDATE, DELETE)
+  - FileMetadataService sends UPDATE events on metadata changes → partial Elasticsearch update (preserves extractedText)
+  - FileMetadataService sends DELETE events on document deletion → Elasticsearch document removal
+- **RabbitMQ Cross-Service Integration**: 
+  - Configured `DefaultClassMapper` to map REST DTOs to search-service DTOs
+  - Resolves Jackson TypeId mismatch between microservices
+- **Admin Endpoints**: `POST /api/v1/admin/reindex` for bulk reindexing from PostgreSQL
+- **Search Features**: Wildcard search (case-insensitive), SearchField filter (all/filename/extractedText/summary), Author/FileType filters, highlighting, pagination, sorting
+- **Kibana Integration**: Kibana on port 5601 for data exploration (Data View: `documents*`)
+- **Unit Tests**: GenAIWorkerTest, GenAIResultListenerTest
+
 ## Architecture Overview
+
+### Main Processing Pipeline
 ```
-Upload PDF → REST API → MinIO Storage
-           ↓
-       OCR Queue → OCR Worker (Tesseract + Ghostscript)
-           ↓
-     GenAI Queue → GenAI Worker (OpenAI API)
-           ↓
-  GenAI Result Queue → REST API → Database (Summary saved)
-           ↓
-         UI (Auto-refresh until summary available)
+Upload → REST → MinIO → PostgreSQL
+                  ↓
+              OCR Queue → OCR Worker
+                  ↓
+             GenAI Queue → GenAI Worker
+                  ↓
+          GenAI Result Queue → REST → PostgreSQL (summary)
+                                ↓
+                    Search Indexing Queue → search-service → Elasticsearch
+```
+
+### Search Flow
+```
+UI → REST /documents/search → search-service → Elasticsearch → Results
+```
+
+### Update/Delete Sync
+```
+PATCH/DELETE → REST → PostgreSQL → Search Indexing Queue → search-service → Elasticsearch
+```
+
+### Admin Reindex
+```
+POST /admin/reindex → REST → PostgreSQL (all docs) → Search Indexing Queue → search-service → Elasticsearch
 ```
 
 ## Technology Stack
@@ -119,7 +158,8 @@ Upload PDF → REST API → MinIO Storage
 - **OCR**: Tesseract v5.13.0 + Ghostscript (PDF processing)
 - **AI**: OpenAI API
 - **Message Queue**: RabbitMQ
-- **Database**: PostgreSQL
+- **Database**: PostgreSQL (metadata + summary)
+- **Search**: Elasticsearch 8.17.0 + Kibana 8.17.0
 - **Backend**: Spring Boot 3.5.4
 - **Frontend**: Next.js with TypeScript
 - **Container**: Docker + docker-compose
