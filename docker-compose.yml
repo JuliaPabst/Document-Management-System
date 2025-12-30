@@ -62,6 +62,7 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
+      SEARCH_SERVICE_URL: http://search-service:8083
     healthcheck:
       # Using wget instead of curl because amazoncorretto:21-alpine does not have curl installed by default
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
