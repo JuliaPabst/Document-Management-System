@@ -17,6 +17,7 @@ public class SearchRequestDto {
 
     private String author;
     private String fileType;
+    private String searchField; // all, filename, extractedText, summary
 
     @Builder.Default
     private Integer page = 0;
