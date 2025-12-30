@@ -1,7 +1,7 @@
 package org.emailingestion.service;
 
 import jakarta.mail.BodyPart;
-import jakarta.mail.internet.MimeUtility; // <--- WICHTIG: Diesen Import hinzufügen!
+import jakarta.mail.internet.MimeUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.emailingestion.exception.DuplicateFileException;
@@ -139,6 +139,6 @@ public class AttachmentProcessor {
         if (filename == null || !filename.contains(".")) {
             return "";
         }
-        return filename.substring(filename.lastIndexOf(".") + 1);
+        return filename.substring(filename.lastIndexOf(".") + 1).toUpperCase();
     }
 }
