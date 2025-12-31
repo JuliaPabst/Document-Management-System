@@ -133,13 +133,17 @@ public class ElasticsearchService {
 
         List<Query> mustQueries = new ArrayList<>();
 
-        // If query is "*" or empty, use match_all, otherwise use wildcard queries for partial matching
+        // If query is "*" or empty, use match_all, otherwise use wildcard queries with multi-term support
         if (searchRequest.getQuery() != null && 
             !searchRequest.getQuery().isBlank() && 
             !"*".equals(searchRequest.getQuery().trim())) {
             
-            // Convert query to lowercase and add wildcards for case-insensitive substring matching
-            String wildcardQuery = "*" + searchRequest.getQuery().toLowerCase() + "*";
+            // Split query into terms for substring matching across word boundaries
+            String[] terms = searchRequest.getQuery().trim().split("\\s+");
+            List<String> wildcardTerms = new ArrayList<>();
+            for (String term : terms) {
+                wildcardTerms.add("*" + term.toLowerCase() + "*");
+            }
             
             // Determine which fields to search based on searchField parameter
             List<Query> shouldQueries = new ArrayList<>();
@@ -148,78 +152,26 @@ public class ElasticsearchService {
             if (searchField != null && !searchField.isBlank()) {
                 switch (searchField.toLowerCase()) {
                     case "filename":
-                        shouldQueries.add(Query.of(q -> q.wildcard(w -> w
-                                .field("filename")
-                                .value(wildcardQuery)
-                                .caseInsensitive(true)
-                        )));
+                        shouldQueries.add(createMultiTermQuery("filename", wildcardTerms, 1.0f));
                         break;
                     case "extractedtext":
-                        shouldQueries.add(Query.of(q -> q.wildcard(w -> w
-                                .field("extractedText")
-                                .value(wildcardQuery)
-                                .caseInsensitive(true)
-                        )));
+                        shouldQueries.add(createMultiTermQuery("extractedText", wildcardTerms, 1.0f));
                         break;
                     case "summary":
-                        shouldQueries.add(Query.of(q -> q.wildcard(w -> w
-                                .field("summary")
-                                .value(wildcardQuery)
-                                .caseInsensitive(true)
-                        )));
+                        shouldQueries.add(createMultiTermQuery("summary", wildcardTerms, 1.0f));
                         break;
                     default: // "all" or any other value
-                        shouldQueries.add(Query.of(q -> q.wildcard(w -> w
-                                .field("filename")
-                                .value(wildcardQuery)
-                                .caseInsensitive(true)
-                                .boost(3.0f)
-                        )));
-                        shouldQueries.add(Query.of(q -> q.wildcard(w -> w
-                                .field("author")
-                                .value(wildcardQuery)
-                                .caseInsensitive(true)
-                                .boost(2.0f)
-                        )));
-                        shouldQueries.add(Query.of(q -> q.wildcard(w -> w
-                                .field("extractedText")
-                                .value(wildcardQuery)
-                                .caseInsensitive(true)
-                                .boost(2.0f)
-                        )));
-                        shouldQueries.add(Query.of(q -> q.wildcard(w -> w
-                                .field("summary")
-                                .value(wildcardQuery)
-                                .caseInsensitive(true)
-                                .boost(2.0f)
-                        )));
+                        shouldQueries.add(createMultiTermQuery("filename", wildcardTerms, 3.0f));
+                        shouldQueries.add(createMultiTermQuery("author", wildcardTerms, 2.0f));
+                        shouldQueries.add(createMultiTermQuery("extractedText", wildcardTerms, 2.0f));
+                        shouldQueries.add(createMultiTermQuery("summary", wildcardTerms, 2.0f));
                 }
             } else {
                 // Default (search all fields)
-                shouldQueries.add(Query.of(q -> q.wildcard(w -> w
-                        .field("filename")
-                        .value(wildcardQuery)
-                        .caseInsensitive(true)
-                        .boost(3.0f)
-                )));
-                shouldQueries.add(Query.of(q -> q.wildcard(w -> w
-                        .field("author")
-                        .value(wildcardQuery)
-                        .caseInsensitive(true)
-                        .boost(2.0f)
-                )));
-                shouldQueries.add(Query.of(q -> q.wildcard(w -> w
-                        .field("extractedText")
-                        .value(wildcardQuery)
-                        .caseInsensitive(true)
-                        .boost(2.0f)
-                )));
-                shouldQueries.add(Query.of(q -> q.wildcard(w -> w
-                        .field("summary")
-                        .value(wildcardQuery)
-                        .caseInsensitive(true)
-                        .boost(2.0f)
-                )));
+                shouldQueries.add(createMultiTermQuery("filename", wildcardTerms, 3.0f));
+                shouldQueries.add(createMultiTermQuery("author", wildcardTerms, 2.0f));
+                shouldQueries.add(createMultiTermQuery("extractedText", wildcardTerms, 2.0f));
+                shouldQueries.add(createMultiTermQuery("summary", wildcardTerms, 2.0f));
             }
             
             // Bool query with should (OR) for multiple fields
@@ -321,5 +273,32 @@ public class ElasticsearchService {
                 .score(hit.score())
                 .highlightedText(highlightedText)
                 .build();
+    }
+
+    // Creates a query that matches all terms in the specified field
+    private Query createMultiTermQuery(String field, List<String> wildcardTerms, float boost) {
+        if (wildcardTerms.size() == 1) {
+            // For single term: simple wildcard query
+            return Query.of(q -> q.wildcard(w -> w
+                    .field(field)
+                    .value(wildcardTerms.get(0))
+                    .caseInsensitive(true)
+                    .boost(boost)
+            ));
+        } else {
+            // For multiple terms: bool query where ALL terms must match (AND logic)
+            List<Query> termQueries = new ArrayList<>();
+            for (String wildcardTerm : wildcardTerms) {
+                termQueries.add(Query.of(q -> q.wildcard(w -> w
+                        .field(field)
+                        .value(wildcardTerm)
+                        .caseInsensitive(true)
+                )));
+            }
+            return Query.of(q -> q.bool(b -> b
+                    .must(termQueries)
+                    .boost(boost)
+            ));
+        }
     }
 }

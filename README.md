@@ -119,7 +119,7 @@ The Email Ingestion Service acts as the automated entry point for the Document M
   - Configured `DefaultClassMapper` to map REST DTOs to search-service DTOs
   - Resolves Jackson TypeId mismatch between microservices
 - **Admin Endpoints**: `POST /api/v1/admin/reindex` for bulk reindexing from PostgreSQL
-- **Search Features**: Wildcard search (case-insensitive), SearchField filter (all/filename/extractedText/summary), Author/FileType filters, highlighting, pagination, sorting
+- **Search Features**: Multi-term wildcard search (case-insensitive, supports partial matches across word boundaries), SearchField filter (all/filename/extractedText/summary), Author/FileType filters, highlighting, pagination, sorting
 - **Kibana Integration**: Kibana on port 5601 for data exploration (Data View: `documents*`)
 - **Unit Tests**: GenAIWorkerTest, GenAIResultListenerTest
 
