@@ -80,7 +80,7 @@ class EmailConfigTest {
         EmailConfig emailConfig = new EmailConfig();
         ReflectionTestUtils.setField(emailConfig, "protocol", "imaps");
 
-        // Act - FIX: Expliziter Cast auf Properties statt 'var'
+        // Act - explicit cast to Properties
         Properties props = (Properties) ReflectionTestUtils.invokeMethod(emailConfig, "javaMailProperties");
 
         // Assert
@@ -98,7 +98,7 @@ class EmailConfigTest {
         EmailConfig emailConfig = new EmailConfig();
         ReflectionTestUtils.setField(emailConfig, "protocol", "imap");
 
-        // Act - FIX: Expliziter Cast auf Properties statt 'var'
+        // Act - explicit cast to Properties
         Properties props = (Properties) ReflectionTestUtils.invokeMethod(emailConfig, "javaMailProperties");
 
         // Assert
