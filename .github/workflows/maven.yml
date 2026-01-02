@@ -49,6 +49,41 @@ jobs:
     - name: Upload Workers Artifact
       uses: actions/upload-artifact@v5.0.0
       with:
-        # A file, directory or wildcard pattern that describes what to upload
         name: paperless-workers
         path: paperlessWorkers/target/*.jar
+
+  build-email-ingestion:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+    - name: Build Email Ingestion with Maven
+      run: mvn -B package --file email-ingestion/pom.xml
+    - name: Upload Email Ingestion Artifact
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: email-ingestion
+        path: email-ingestion/target/*.jar
+
+  build-search-service:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+    - name: Build Search Service with Maven
+      run: mvn -B package --file search-service/pom.xml
+    - name: Upload Search Service Artifact
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: search-service
+        path: search-service/target/*.jar

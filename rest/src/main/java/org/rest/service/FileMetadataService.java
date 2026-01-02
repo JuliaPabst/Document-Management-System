@@ -146,7 +146,20 @@ public class FileMetadataService {
             );
             messageProducerService.sendToOcrQueue(fileMessage);
         } else {
-            log.info("Only metadata updated for id {}, skipping worker queue", updatedMetadata.getId());
+            // Only metadata updated (author change), send UPDATE event to Elasticsearch
+            log.info("Only metadata updated for id {}, sending UPDATE event to search-indexing queue", updatedMetadata.getId());
+            org.rest.dto.DocumentUpdateEventDto updateEvent = org.rest.dto.DocumentUpdateEventDto.builder()
+                    .documentId(updatedMetadata.getId())
+                    .filename(updatedMetadata.getFilename())
+                    .author(updatedMetadata.getAuthor())
+                    .fileType(updatedMetadata.getFileType())
+                    .size(updatedMetadata.getSize())
+                    .objectKey(updatedMetadata.getObjectKey())
+                    .summary(updatedMetadata.getSummary())
+                    .extractedText("") // Not needed for metadata-only updates
+                    .eventType(org.rest.dto.DocumentUpdateEventDto.EventType.UPDATE)
+                    .build();
+            messageProducerService.sendDocumentUpdateEvent(updateEvent);
         }
         
         return updatedMetadata;
@@ -173,6 +186,14 @@ public class FileMetadataService {
         }
         
         fileMetadataRepository.deleteById(id);
-        log.info("File metadata deleted with ID: {}", id);
+        log.info("File metadata deleted from database with ID: {}", id);
+        
+        // Send DELETE event to Elasticsearch
+        log.info("Sending DELETE event to search-indexing queue for document ID: {}", id);
+        org.rest.dto.DocumentUpdateEventDto deleteEvent = org.rest.dto.DocumentUpdateEventDto.builder()
+                .documentId(id)
+                .eventType(org.rest.dto.DocumentUpdateEventDto.EventType.DELETE)
+                .build();
+        messageProducerService.sendDocumentUpdateEvent(deleteEvent);
     }
 }

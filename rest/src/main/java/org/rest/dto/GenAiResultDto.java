@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class GenAiResultDto {
 	private Long documentId;
 	private String objectKey;
+	private String extractedText;
 	private String summary;
 	private LocalDateTime processedAt;
 }

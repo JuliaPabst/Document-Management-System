@@ -35,10 +35,11 @@ public class GenAIWorker {
             log.info("GenAI Worker generated summary ({} chars) for document ID: {}", 
                     summary.length(), ocrResult.getDocumentId());
 
-            // Create result DTO
+            // Create result DTO (pass through extractedText for Elasticsearch indexing)
             GenAiResultDto genAiResult = new GenAiResultDto(
                     ocrResult.getDocumentId(),
                     ocrResult.getObjectKey(),
+                    ocrResult.getExtractedText(),
                     summary,
                     LocalDateTime.now()
             );
