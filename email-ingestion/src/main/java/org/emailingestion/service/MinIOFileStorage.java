@@ -5,6 +5,8 @@ import io.minio.errors.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.emailingestion.config.MinIOConfig;
+import org.emailingestion.exception.FileStorageException;
+import org.emailingestion.exception.StorageFileNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -40,10 +42,10 @@ public class MinIOFileStorage implements FileStorage {
 			log.info("File uploaded successfully to MinIO: {}", objectKey);
 		} catch (MinioException e) {
 			log.error("MinIO error during upload - key: {}, error: {}", objectKey, e.getMessage());
-			throw new RuntimeException("Failed to upload file to MinIO: " + e.getMessage(), e);
+			throw new FileStorageException("Failed to upload file to MinIO: " + e.getMessage(), e);
 		} catch (IOException | NoSuchAlgorithmException | InvalidKeyException e) {
 			log.error("Error during file upload - key: {}, error: {}", objectKey, e.getMessage());
-			throw new RuntimeException("Failed to upload file: " + e.getMessage(), e);
+			throw new FileStorageException("Failed to upload file: " + e.getMessage(), e);
 		}
 	}
 
@@ -66,13 +68,13 @@ public class MinIOFileStorage implements FileStorage {
 		} catch (ErrorResponseException e) {
 			if (e.errorResponse().code().equals("NoSuchKey")) {
 				log.error("File not found in MinIO: {}", objectKey);
-				throw new RuntimeException("File not found: " + objectKey);
+				throw new StorageFileNotFoundException(objectKey);
 			}
 			log.error("MinIO error during download - key: {}, error: {}", objectKey, e.getMessage());
-			throw new RuntimeException("Failed to download file from MinIO: " + e.getMessage(), e);
+			throw new FileStorageException("Failed to download file from MinIO: " + e.getMessage(), e);
 		} catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
 			log.error("Error during file download - key: {}, error: {}", objectKey, e.getMessage());
-			throw new RuntimeException("Failed to download file: " + e.getMessage(), e);
+			throw new FileStorageException("Failed to download file: " + e.getMessage(), e);
 		}
 	}
 
@@ -91,7 +93,7 @@ public class MinIOFileStorage implements FileStorage {
 			log.info("File deleted successfully from MinIO: {}", objectKey);
 		} catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
 			log.error("Error during file deletion - key: {}, error: {}", objectKey, e.getMessage());
-			throw new RuntimeException("Failed to delete file: " + e.getMessage(), e);
+			throw new FileStorageException("Failed to delete file: " + e.getMessage(), e);
 		}
 	}
 
@@ -109,10 +111,10 @@ public class MinIOFileStorage implements FileStorage {
 				return false;
 			}
 			log.error("Error checking file existence - key: {}, error: {}", objectKey, e.getMessage());
-			throw new RuntimeException("Failed to check file existence: " + e.getMessage(), e);
+			throw new FileStorageException("Failed to check file existence: " + e.getMessage(), e);
 		} catch (Exception e) {
 			log.error("Error checking file existence - key: {}, error: {}", objectKey, e.getMessage());
-			throw new RuntimeException("Failed to check file existence: " + e.getMessage(), e);
+			throw new FileStorageException("Failed to check file existence: " + e.getMessage(), e);
 		}
 	}
 
@@ -136,7 +138,7 @@ public class MinIOFileStorage implements FileStorage {
 			}
 		} catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
 			log.error("Failed to ensure bucket existence: {}", e.getMessage());
-			throw new RuntimeException("Failed to ensure bucket exists: " + e.getMessage(), e);
+			throw new FileStorageException("Failed to ensure bucket exists: " + e.getMessage(), e);
 		}
 	}
 }
