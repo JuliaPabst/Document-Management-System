@@ -9,6 +9,13 @@ Use the [.env.template](.env.template) for creating your .env file (simply add y
 - Users can ask questions about their documents, search for files, and get insights about their document collection
 - See [CHAT_FEATURE.md](CHAT_FEATURE.md)
 
+## Additional Usecase: Email Ingestion
+The Email Ingestion Service acts as the automated entry point for the Document Management System via IMAP/S.
+* **Automated Capture:** Automatically fetches emails, decoding complex filenames (MIME/UTF-8) and extracting attachments like PDFs or images.
+* **Validation & Filtering:** Enforces strict security rules (file types, size limits) before any document enters the system.
+* **Pipeline Integration:** Uploads validated files to object storage (MinIO) and instantly triggers the downstream OCR and GenAI worker pipelines for analysis.
+- See [EMAIL_INGESTION_SETUP.md](EMAIL_INGESTION_SETUP.md)
+
 ## Sprint 1: Project-Setup, REST API, DAL (with Mapping)
 - Scaffolded the REST API project structure.
 - Implemented initial endpoints for document management.
@@ -94,17 +101,58 @@ Use the [.env.template](.env.template) for creating your .env file (simply add y
   - **Full Kubernetes Guide**: See [MINIKUBE.md](MINIKUBE.md) for complete setup instructions
   - Separate Grafana instance for Kubernetes monitoring (port 3002)
 
+## Sprint 6: Elasticsearch Integration & Advanced Search
+- **Search Service**: Dedicated microservice for Elasticsearch operations
+  - ElasticsearchService with CRUD operations (index, partial update, delete, search)
+  - REST proxy endpoint `/api/v1/documents/search` for WebUI integration
+  - Configured Elasticsearch on port 9200 with "documents" index
+  - DocumentIndexingListener consumes from `search-indexing-queue`
+- **Indexing Pipeline**: Complete document lifecycle synchronization
+  - Extended `GenAiResultDto` with `extractedText` (OCR result passed through from GenAI Worker)
+  - Created `DocumentIndexDto` with all searchable fields (filename, author, extractedText, summary, metadata)
+  - GenAIResultListener sends complete document data to `search-indexing-queue` after processing
+- **Update/Delete Synchronization**: Real-time Elasticsearch sync
+  - `DocumentUpdateEventDto` with EventType enum (UPDATE, DELETE)
+  - FileMetadataService sends UPDATE events on metadata changes → partial Elasticsearch update (preserves extractedText)
+  - FileMetadataService sends DELETE events on document deletion → Elasticsearch document removal
+- **RabbitMQ Cross-Service Integration**: 
+  - Configured `DefaultClassMapper` to map REST DTOs to search-service DTOs
+  - Resolves Jackson TypeId mismatch between microservices
+- **Admin Endpoints**: `POST /api/v1/admin/reindex` for bulk reindexing from PostgreSQL
+- **Search Features**: Multi-term wildcard search (case-insensitive, supports partial matches across word boundaries), SearchField filter (all/filename/extractedText/summary), Author/FileType filters, highlighting, pagination, sorting
+- **Kibana Integration**: Kibana on port 5601 for data exploration (Data View: `documents*`)
+- **Unit Tests**: GenAIWorkerTest, GenAIResultListenerTest
+
+> **Note**: Documents become searchable only after the complete processing pipeline finishes (OCR → GenAI → Indexing). This means a newly uploaded document will appear in search results after the AI summary has been generated (typically 10-30 seconds depending on document size and API response time).
+
 ## Architecture Overview
+
+### Main Processing Pipeline
 ```
-Upload PDF → REST API → MinIO Storage
-           ↓
-       OCR Queue → OCR Worker (Tesseract + Ghostscript)
-           ↓
-     GenAI Queue → GenAI Worker (OpenAI API)
-           ↓
-  GenAI Result Queue → REST API → Database (Summary saved)
-           ↓
-         UI (Auto-refresh until summary available)
+Upload → REST → MinIO → PostgreSQL
+                  ↓
+              OCR Queue → OCR Worker
+                  ↓
+             GenAI Queue → GenAI Worker
+                  ↓
+          GenAI Result Queue → REST → PostgreSQL (summary)
+                                ↓
+                    Search Indexing Queue → search-service → Elasticsearch
+```
+
+### Search Flow
+```
+UI → REST /documents/search → search-service → Elasticsearch → Results
+```
+
+### Update/Delete Sync
+```
+PATCH/DELETE → REST → PostgreSQL → Search Indexing Queue → search-service → Elasticsearch
+```
+
+### Admin Reindex
+```
+POST /admin/reindex → REST → PostgreSQL (all docs) → Search Indexing Queue → search-service → Elasticsearch
 ```
 
 ## Technology Stack
@@ -112,7 +160,8 @@ Upload PDF → REST API → MinIO Storage
 - **OCR**: Tesseract v5.13.0 + Ghostscript (PDF processing)
 - **AI**: OpenAI API
 - **Message Queue**: RabbitMQ
-- **Database**: PostgreSQL
+- **Database**: PostgreSQL (metadata + summary)
+- **Search**: Elasticsearch 8.17.0 + Kibana 8.17.0
 - **Backend**: Spring Boot 3.5.4
 - **Frontend**: Next.js with TypeScript
 - **Container**: Docker + docker-compose

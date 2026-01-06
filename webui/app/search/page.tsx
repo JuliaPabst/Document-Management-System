@@ -18,6 +18,7 @@ export default function SearchPage() {
     updateSearch,
     updateAuthor,
     updateFileType,
+    updateSearchField,
     clearFilters,
     hasActiveFilters,
   } = useSearchVM()
@@ -37,10 +38,12 @@ export default function SearchPage() {
             <SearchFilters
               author={searchParams.author || "all"}
               fileType={searchParams.fileType || "all"}
+              searchField={searchParams.searchField || "all"}
               authors={authors}
               fileTypes={fileTypes}
               onAuthorChange={(value) => updateAuthor(value === "all" ? "" : value)}
               onFileTypeChange={(value) => updateFileType(value === "all" ? "" : value)}
+              onSearchFieldChange={(value) => updateSearchField(value === "all" ? "" : value)}
               onClearFilters={clearFilters}
               hasActiveFilters={hasActiveFilters}
             />

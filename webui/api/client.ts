@@ -2,6 +2,8 @@ import { HttpClient } from "@/lib/http"
 import type { 
   FileMetadata, 
   SearchParams, 
+  SearchRequest,
+  SearchResponse,
   UploadRequest, 
   UpdateRequest,
   ChatMessageRequestDto,
@@ -12,6 +14,7 @@ import type {
 
 interface ApiAdapter {
   getAllFiles(params?: SearchParams): Promise<FileMetadata[]>
+  searchDocuments(request: SearchRequest): Promise<SearchResponse>
   getFileById(id: number): Promise<FileMetadata>
   uploadFile(request: UploadRequest): Promise<FileMetadata>
   updateFile(id: number, request: UpdateRequest): Promise<FileMetadata>
@@ -31,6 +34,10 @@ class RestAdapter implements ApiAdapter {
 
   async getAllFiles(params?: SearchParams): Promise<FileMetadata[]> {
     return this.http.get<FileMetadata[]>("/v1/files", params as Record<string, string>)
+  }
+
+  async searchDocuments(request: SearchRequest): Promise<SearchResponse> {
+    return this.http.post<SearchResponse>("/v1/documents/search", request)
   }
 
   async getFileById(id: number): Promise<FileMetadata> {
