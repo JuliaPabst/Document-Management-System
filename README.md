@@ -123,6 +123,8 @@ The Email Ingestion Service acts as the automated entry point for the Document M
 - **Kibana Integration**: Kibana on port 5601 for data exploration (Data View: `documents*`)
 - **Unit Tests**: GenAIWorkerTest, GenAIResultListenerTest
 
+> **Note**: Documents become searchable only after the complete processing pipeline finishes (OCR → GenAI → Indexing). This means a newly uploaded document will appear in search results after the AI summary has been generated (typically 10-30 seconds depending on document size and API response time).
+
 ## Architecture Overview
 
 ### Main Processing Pipeline
