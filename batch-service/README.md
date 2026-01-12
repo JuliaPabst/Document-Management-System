@@ -24,7 +24,7 @@ docker compose up -d batch-service
 
 ## Next Steps
 
-- [ ] Add Spring Batch dependencies
+- [x] Add Spring Batch dependencies
 - [ ] Define XML schema for access logs
 - [ ] Implement batch job components
 - [ ] Add PostgreSQL integration
