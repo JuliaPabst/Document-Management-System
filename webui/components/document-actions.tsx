@@ -46,7 +46,7 @@ export function DocumentActions({ document, onDelete }: DocumentActionsProps) {
     setIsDeleting(true)
     try {
       await onDelete()
-      router.push("/search")
+      router.push("/")
     } catch (err) {
       setIsDeleting(false)
     }
