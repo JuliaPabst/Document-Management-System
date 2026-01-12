@@ -21,6 +21,22 @@ docker compose up -d batch-service
 
 - Health Check: `http://localhost:8086/actuator/health`
 - Metrics: `http://localhost:8086/actuator/prometheus`
+- Manual Trigger: `POST http://localhost:8086/api/v1/batch/trigger`
+- Batch Health: `GET http://localhost:8086/api/v1/batch/health`
+
+### Manual Job Trigger
+
+```bash
+curl -X POST http://localhost:8086/api/v1/batch/trigger
+```
+
+Response:
+```json
+{
+  "status": "success",
+  "message": "Batch job triggered successfully"
+}
+```
 
 ## XML Format
 
@@ -68,10 +84,42 @@ CREATE TABLE document_access_statistics (
 
 Migration script: `src/main/resources/db/migration/V1__create_document_access_statistics.sql`
 
+## Scheduling
+
+The batch job runs automatically on a schedule:
+
+**Default Schedule:** Daily at 01:00 AM  
+**Cron Expression:** `0 0 1 * * ?`
+
+### Cron Expression Examples
+
+| Expression | Description |
+|------------|-------------|
+| `0 0 1 * * ?` | Daily at 01:00 AM (default) |
+| `0 0 2 * * ?` | Daily at 02:00 AM |
+| `0 0 */6 * * ?` | Every 6 hours |
+| `0 */30 * * * ?` | Every 30 minutes (testing) |
+
+Configure via environment variable:
+```bash
+BATCH_SCHEDULE_CRON=0 0 2 * * ?
+```
+
 ## Next Steps
 
 - [x] Add Spring Batch dependencies
 - [x] Define XML schema for access logs
 - [x] Implement batch job components
 - [x] Add PostgreSQL integration
-- [ ] Implement scheduling
+- [x] Implement scheduling
+
+## Steps taken during the development process
+
+The batch service is now fully functional:
+- Scheduled execution (daily at 01:00 AM)
+- Manual triggering via REST API
+- XML file processing
+- PostgreSQL integration
+- Error handling and logging
+- Prometheus metrics
+- Docker support
