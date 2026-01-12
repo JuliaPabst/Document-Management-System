@@ -125,6 +125,65 @@ The Email Ingestion Service acts as the automated entry point for the Document M
 
 > **Note**: Documents become searchable only after the complete processing pipeline finishes (OCR → GenAI → Indexing). This means a newly uploaded document will appear in search results after the AI summary has been generated (typically 10-30 seconds depending on document size and API response time).
 
+## Sprint 7: Integration Testing, Batch Processing & Project Finalization
+
+### Integration Testing
+- **GitHub Actions CI/CD Enhancement**: Added dedicated `integration-tests-rest` job
+  - Runs `mvn verify` to execute integration tests separately from unit tests
+  - Ensures document upload integration test runs successfully in CI pipeline
+- **Document Upload Integration Test**: Verified existing `FileMetadataControllerIT#uploadFile()` test
+  - Full integration test with Testcontainers for real PostgreSQL
+  - Tests complete HTTP request/response cycle for document upload
+  - Validates database persistence and JSON response structure
+  - Comprehensive test documentation in [INTEGRATION_TESTS_DOCUMENTATION.md](rest/INTEGRATION_TESTS_DOCUMENTATION.md)
+
+### Batch Processing Service
+- **Standalone Batch Application**: Created `batch-service` for scheduled access log processing
+  - Spring Batch 5.2.5 with chunk-oriented processing (100 records/chunk)
+  - Reads XML files from configurable input folder (`/app/input`)
+  - Processes daily access statistics from external systems
+  - Fault-tolerant batch execution with skip logic for failed records
+- **XML Schema Definition**: Structured format for access log data
+  - `AccessLogReport` root element with metadata (ReportDate, System, GeneratedAt)
+  - `DocumentAccessRecord` elements containing DocumentId, AccessCount, LastAccessTime
+  - Jackson XML parser for file processing
+  - Sample file: [access-log-2026-01-11.xml](batch-service/sample-data/access-log-2026-01-11.xml)
+- **Database Integration**: Extended PostgreSQL schema
+  - `document_access_statistics` table tracks daily access counts per document
+  - Unique constraint on `document_id + access_date` prevents duplicates
+  - Automatic accumulation of counts for duplicate entries
+  - `@PrePersist` lifecycle hook for `processed_at` timestamp
+- **Scheduling & Execution**:
+  - **Automatic**: Daily execution at 01:00 AM via `@Scheduled(cron="0 0 1 * * ?")`
+  - **Manual Trigger**: REST endpoint `POST /api/v1/batch/trigger` for on-demand processing
+  - **Health Check**: `GET /api/v1/batch/health` for service monitoring
+  - Cron expression configurable via `BATCH_SCHEDULE_CRON` environment variable
+- **File Management**: Automated archiving prevents reprocessing
+  - `FileArchivingListener` moves processed XML files to archive folder
+  - Files renamed with timestamp suffix (e.g., `access-log-2026-01-11_20260112_125139.xml`)
+  - Archive folder: `/app/archive` (mounted volume)
+- **Docker Integration**: 
+  - Added `batch-service` to docker-compose.yml with PostgreSQL dependency
+  - Environment variables for database connection and folder paths
+  - Volume mounts for `input` and `archive` directories
+  - Health check via Actuator endpoint
+  - Port 8086 for REST API access
+- **Monitoring**: Spring Boot Actuator + Prometheus integration
+  - Metrics endpoint: `http://localhost:8086/actuator/metrics`
+  - Batch job execution history stored in Spring Batch metadata tables
+  - Job statistics: read count, write count, skip count, execution status
+- **Configuration Management**:
+  - All settings externalized to environment variables
+  - Input folder path, archive folder path, file pattern, chunk size
+  - Database credentials shared with main application via `.env` file
+  - Centralized configuration in [application.properties](batch-service/src/main/resources/application.properties)
+
+### System Architecture Updates
+- **Database Centralization**: All services now use unified database configuration
+  - Updated docker-compose.yml to use environment variables from `.env` file
+  - Database name, user, password consistent across REST, batch-service, and workers
+  - Simplified configuration management and deployment
+
 ## Architecture Overview
 
 ### Main Processing Pipeline
