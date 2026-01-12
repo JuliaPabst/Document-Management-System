@@ -49,6 +49,6 @@ Sample file: `sample-data/access-log-2026-01-11.xml`
 
 - [x] Add Spring Batch dependencies
 - [x] Define XML schema for access logs
-- [ ] Implement batch job components
+- [x] Implement batch job components
 - [ ] Add PostgreSQL integration
 - [ ] Implement scheduling
