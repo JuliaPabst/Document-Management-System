@@ -25,16 +25,6 @@ cd rest
 ./mvnw test
 ```
 
-### Run only integration tests
-```bash
-./mvnw test -Dtest="*IT"
-```
-
-### Run specific test class
-```bash
-./mvnw test -Dtest=FileMetadataRepositoryIT
-```
-
 ## Test Categories
 
 ### 1. Repository Tests (@DataJpaTest)
