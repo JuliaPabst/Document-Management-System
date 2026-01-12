@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AccessLogReport>
+    <ReportDate>2026-01-11</ReportDate>
+    <System>External-CMS</System>
+    <GeneratedAt>2026-01-12T01:00:00Z</GeneratedAt>
+    <DocumentAccesses>
+        <DocumentAccess>
+            <DocumentId>1</DocumentId>
+            <AccessCount>15</AccessCount>
+            <LastAccessTime>2026-01-11T23:45:00Z</LastAccessTime>
+        </DocumentAccess>
+        <DocumentAccess>
+            <DocumentId>2</DocumentId>
+            <AccessCount>7</AccessCount>
+            <LastAccessTime>2026-01-11T22:30:00Z</LastAccessTime>
+        </DocumentAccess>
+        <DocumentAccess>
+            <DocumentId>3</DocumentId>
+            <AccessCount>23</AccessCount>
+            <LastAccessTime>2026-01-11T23:59:00Z</LastAccessTime>
+        </DocumentAccess>
+        <DocumentAccess>
+            <DocumentId>4</DocumentId>
+            <AccessCount>5</AccessCount>
+            <LastAccessTime>2026-01-11T20:15:00Z</LastAccessTime>
+        </DocumentAccess>
+        <DocumentAccess>
+            <DocumentId>5</DocumentId>
+            <AccessCount>42</AccessCount>
+            <LastAccessTime>2026-01-11T23:50:00Z</LastAccessTime>
+        </DocumentAccess>
+    </DocumentAccesses>
+</AccessLogReport>
