@@ -337,8 +337,10 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - BATCH_INPUT_FOLDER=/app/input
+      - BATCH_ARCHIVE_FOLDER=/app/archive
     volumes:
-      - ./batch-service/sample-data:/app/input
+      - ./batch-service/input:/app/input
+      - ./batch-service/archive:/app/archive
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 10s
