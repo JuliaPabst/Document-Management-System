@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.batch.batch.AccessLogProcessor;
 import org.batch.batch.AccessLogWriter;
 import org.batch.batch.AccessLogXmlReader;
+import org.batch.batch.FileArchivingListener;
 import org.batch.dto.DocumentAccessRecord;
 import org.batch.model.DocumentAccessStatistics;
 import org.springframework.batch.core.Job;
@@ -29,6 +30,7 @@ public class BatchJobConfiguration {
     private final AccessLogXmlReader reader;
     private final AccessLogProcessor processor;
     private final AccessLogWriter writer;
+    private final FileArchivingListener fileArchivingListener;
 
     @Value("${batch.chunk.size:100}")
     private int chunkSize;
@@ -37,6 +39,7 @@ public class BatchJobConfiguration {
     public Job accessLogProcessingJob(JobRepository jobRepository, Step accessLogStep) {
         return new JobBuilder("accessLogProcessingJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
+                .listener(fileArchivingListener)
                 .start(accessLogStep)
                 .build();
     }
