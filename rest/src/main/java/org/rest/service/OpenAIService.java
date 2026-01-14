@@ -179,7 +179,13 @@ public class OpenAIService {
                     systemMessage.append(i + 1).append(". \"").append(file.getFilename()).append("\" by ")
                             .append(file.getAuthor()).append(" (").append(file.getFileType()).append(", ")
                             .append(String.format("%.2f", file.getSize() / 1024.0)).append(" KB, uploaded: ")
-                            .append(formatDate(file.getUploadTime())).append(")\n");
+                            .append(formatDate(file.getUploadTime())).append(")");
+                    
+                    // Add full summary if available
+                    if (file.getSummary() != null && !file.getSummary().trim().isEmpty()) {
+                        systemMessage.append("\n   Summary: ").append(file.getSummary());
+                    }
+                    systemMessage.append("\n");
                 }
                 
                 systemMessage.append("\nCRITICAL INSTRUCTIONS:\n");
