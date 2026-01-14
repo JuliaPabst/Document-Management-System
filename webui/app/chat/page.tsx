@@ -8,7 +8,7 @@ import { useChatVM } from "@/viewmodels/use-chat-vm"
 import { Trash2 } from "lucide-react"
 
 export default function ChatPage() {
-  const { messages, isLoading, sendMessage, clearMessages } = useChatVM()
+  const { messages, isLoading, isLoadingHistory, sendMessage, clearMessages } = useChatVM()
 
   return (
     <div className="container mx-auto max-w-5xl py-8 px-4 h-[calc(100vh-8rem)]">
@@ -22,7 +22,7 @@ export default function ChatPage() {
         {messages.length > 0 && (
           <Button variant="outline" size="sm" onClick={clearMessages} className="gap-2">
             <Trash2 className="h-4 w-4" />
-            Clear Chat
+            New Chat
           </Button>
         )}
       </div>
@@ -31,12 +31,14 @@ export default function ChatPage() {
         <CardHeader className="border-b border-border">
           <CardTitle className="text-lg">Chat</CardTitle>
           <CardDescription>
-            Ask questions about your documents, search for files, or get statistics
+            {isLoadingHistory 
+              ? "Loading conversation history..." 
+              : "Ask questions about your documents, search for files, or get statistics"}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
           <ChatMessages messages={messages} isLoading={isLoading} />
-          <ChatInput onSendMessage={sendMessage} isLoading={isLoading} />
+          <ChatInput onSendMessage={sendMessage} isLoading={isLoading || isLoadingHistory} />
         </CardContent>
       </Card>
     </div>

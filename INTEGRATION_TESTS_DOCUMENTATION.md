@@ -42,13 +42,38 @@ cd rest
 ### 2. Controller Tests (@SpringBootTest + @AutoConfigureMockMvc)
 
 **Purpose**: Test REST endpoints with full application context  
-**Example**: `FileMetadataControllerIT.java`
+**Examples**: 
+- `FileMetadataControllerIT.java` - Tests file upload, retrieval, and search endpoints
+- `ChatMessageControllerIT.java` - Tests chat message persistence and retrieval
+- `ChatControllerIT.java` - Tests chat completion endpoint (with mocked OpenAI)
 
 **Key Features**:
 - Tests full HTTP request/response cycle
 - Validates JSON responses using JsonPath
 - Tests validation, and error handling
 - Uses MockMvc to avoid starting real HTTP server
+- Verifies database state after operations 
+
+**Chat Feature Integration Tests**:
+- **ChatMessageControllerIT**: Tests full workflow → HTTP Request → Controller → Service → Repository → Database
+  - Verifies both HTTP responses AND database persistence
+  - Tests conversation history management 
+  - Tests session-based message filtering and retrieval
+  - Tests conversation sequences and concurrent sessions
+- **ChatControllerIT**: Tests chat completion endpoint flow
+  - OpenAI service is mocked to avoid external API costs
+  - Focuses on controller request/response handling
+  - Tests conversation history passing and error handling
+- **ChatMessageRepositoryIT**: Tests repository with real PostgreSQL
+  - Custom queries and sorting
+  - Session-based operations
+  - Timestamp ordering
+
+**How Chat Feature Works**:
+1. User opens chat page → Frontend loads previous conversation from database (via ChatMessageController)
+2. User sends message -> Saved to DB -> Sent to OpenAI (via ChatController) -> Response saved to DB
+3. All messages persist across sessions using localStorage session ID
+4. "New Chat" button deletes current conversation and creates new session
 
 ## Testcontainers Setup
 
