@@ -122,7 +122,7 @@ public class TestcontainersConfiguration {
 
     /**
      * OCR Worker container - only starts when test.ocr.enabled=true
-     * Automatically builds the image from paperlessWorkers Dockerfile
+     * Tries to use existing image, otherwise builds from paperlessWorkers Dockerfile
      */
     @Bean
     @SuppressWarnings("resource") // Container lifecycle managed by Spring Test
@@ -130,24 +130,36 @@ public class TestcontainersConfiguration {
         boolean ocrEnabled = Boolean.parseBoolean(System.getProperty("test.ocr.enabled", "false"));
         
         if (!ocrEnabled) {
-            System.out.println("⚠️  OCR Worker container is DISABLED");
+            System.out.println("ℹ️  OCR Worker container is DISABLED");
             System.out.println("   To enable, run: ./mvnw test -Dtest.ocr.enabled=true");
             return null; // No container if OCR is disabled
         }
 
-        // Get the path to paperlessWorkers directory (parent of rest/paperlessWorkers)
-        Path paperlessWorkersPath = Paths.get(System.getProperty("user.dir"))
-                .getParent()
-                .resolve("paperlessWorkers");
+        String imageName = "paperless-workers-test:latest";
+        GenericContainer<?> container;
+        
+        try {
+            // Try to use existing image first
+            System.out.println("🔍 Checking for existing OCR Worker image: " + imageName);
+            container = new GenericContainer<>(DockerImageName.parse(imageName));
+            System.out.println("✅ Using existing OCR Worker image");
+        } catch (Exception e) {
+            // If image doesn't exist, build it from Dockerfile
+            System.out.println("🔨 Building OCR Worker image (first time)");
+            System.out.println("   This will take 2-3 minutes. Subsequent runs will reuse the image.");
+            
+            Path paperlessWorkersPath = Paths.get(System.getProperty("user.dir"))
+                    .getParent()
+                    .resolve("paperlessWorkers");
+            
+            ImageFromDockerfile ocrWorkerImage = new ImageFromDockerfile(imageName, false)
+                    .withDockerfile(paperlessWorkersPath.resolve("Dockerfile"))
+                    .withFileFromPath(".", paperlessWorkersPath);
+            
+            container = new GenericContainer<>(ocrWorkerImage);
+        }
 
-        System.out.println("🔨 Building OCR Worker container from: " + paperlessWorkersPath);
-
-        // Build the OCR worker image from the Dockerfile
-        ImageFromDockerfile ocrWorkerImage = new ImageFromDockerfile("paperless-workers-test", false)
-                .withDockerfile(paperlessWorkersPath.resolve("Dockerfile"))
-                .withFileFromPath(".", paperlessWorkersPath);
-
-        return new GenericContainer<>(ocrWorkerImage)
+        return container
                 .withNetwork(network)
                 .withNetworkAliases("ocr-worker")
                 .withEnv("SPRING_RABBITMQ_HOST", "rabbitmq")
