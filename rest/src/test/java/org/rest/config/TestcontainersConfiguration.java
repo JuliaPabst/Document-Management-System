@@ -207,47 +207,21 @@ public class TestcontainersConfiguration {
         
         // Start the container explicitly (dependencies are already started above)
         System.out.println(" Starting OCR Worker container...");
-        System.out.println("   Waiting max 30 seconds for 'Started WorkersApplication' message");
-        
-        // Stream logs in real-time during startup
-        new Thread(() -> {
-            try {
-                Thread.sleep(3000); // Wait a bit for container to start
-                for (int i = 0; i < 10; i++) {
-                    if (finalContainer.isRunning()) {
-                        String logs = finalContainer.getLogs();
-                        String[] lines = logs.split("\n");
-                        System.out.println(" [" + (i*3) + "s] Last 5 log lines:");
-                        int start = Math.max(0, lines.length - 5);
-                        for (int j = start; j < lines.length; j++) {
-                            System.out.println("   " + lines[j]);
-                        }
-                    }
-                    Thread.sleep(3000);
-                }
-            } catch (Exception ignored) {}
-        }).start();
         
         try {
             finalContainer.start();
             System.out.println(" OCR Worker container started successfully!");
-            System.out.println(" Final container logs:");
-            String logs = finalContainer.getLogs();
-            String[] logLines = logs.split("\n");
-            for (String line : logLines) {
-                System.out.println("   " + line);
-            }
         } catch (Exception e) {
             System.err.println(" Failed to start OCR Worker container!");
-            System.err.println("Error: " + e.getMessage());
-            System.err.println("\n Full container logs:");
+            System.err.println(" Error: " + e.getMessage());
+            System.err.println("\n Container logs:");
             try {
                 String logs = finalContainer.getLogs();
                 for (String line : logs.split("\n")) {
                     System.err.println("   " + line);
                 }
             } catch (Exception logEx) {
-                System.err.println("Could not retrieve logs: " + logEx.getMessage());
+                System.err.println(" Could not retrieve logs: " + logEx.getMessage());
             }
             throw e;
         }
