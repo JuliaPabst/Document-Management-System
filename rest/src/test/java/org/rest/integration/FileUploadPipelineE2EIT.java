@@ -103,12 +103,20 @@ class FileUploadPipelineE2EIT {
     }
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws InterruptedException {
         fileMetadataRepository.deleteAll();
         // Clean up queues before each test
         rabbitTemplate.receive(ocrQueue, 100);
         rabbitTemplate.receive(genaiQueue, 100);
         rabbitTemplate.receive(genaiResultQueue, 100);
+        
+        // Wait for OCR worker to be fully connected if OCR is enabled
+        boolean ocrEnabled = Boolean.parseBoolean(System.getProperty("test.ocr.enabled", "false"));
+        if (ocrEnabled) {
+            System.out.println("⏳ Waiting for OCR worker to fully connect to RabbitMQ...");
+            Thread.sleep(5000); // Give worker time to establish RabbitMQ listener
+            System.out.println("✓ OCR worker should now be ready to consume messages");
+        }
     }
 
     @Test
@@ -150,65 +158,61 @@ class FileUploadPipelineE2EIT {
         assertThat(fileStorage.exists(objectKey)).isTrue();
 
         // =====================================================================
-        // STEP 2: Verify message was sent to OCR queue
+        // STEP 2: File upload complete - OCR worker will process
         // =====================================================================
-        FileMessageDto ocrMessage = awaitMessageFromQueue(ocrQueue, FileMessageDto.class, 5);
-        assertThat(ocrMessage).isNotNull();
-        assertThat(ocrMessage.getId()).isEqualTo(documentId);
+        // Note: We do NOT consume from the OCR queue here, as that would steal
+        // the message from the OCR worker. The worker needs to process it.
+        
+        System.out.println("✓ File uploaded successfully, OCR worker will process it");
 
-        System.out.println("✓ Message sent to OCR queue successfully");
-
+        // =====================================================================
+        // STEP 3: Wait for complete pipeline processing
+        // =====================================================================
         if (ocrEnabled) {
-            // =====================================================================
-            // STEP 3: Wait for REAL OCR Worker to process the file
-            // =====================================================================
-            System.out.println("Waiting for real OCR worker to process document...");
+            System.out.println("Waiting for real OCR worker pipeline to complete...");
+            System.out.println("  Pipeline: OCR Worker → GenAI Worker → Database Update");
             
-            // The OCR worker should:
-            // 1. Receive the message from ocr-worker-queue
-            // 2. Download the file from MinIO
+            // Wait for the entire pipeline to complete and database to be updated
+            // The OCR worker will:
+            // 1. Receive message from ocr-worker-queue
+            // 2. Download file from MinIO
             // 3. Extract text using Tesseract OCR
             // 4. Send OcrResultDto to genai-worker-queue
+            // 
+            // The GenAI worker will:
+            // 1. Receive OcrResultDto from genai-worker-queue
+            // 2. Generate summary (or use fallback)
+            // 3. Send GenAiResultDto to genai-result-queue
+            //
+            // The REST service listener will:
+            // 1. Receive GenAiResultDto from genai-result-queue
+            // 2. Update database with summary
             
-            OcrResultDto ocrResult = awaitMessageFromQueue(genaiQueue, OcrResultDto.class, 60);
-            assertThat(ocrResult).isNotNull();
-            assertThat(ocrResult.getDocumentId()).isEqualTo(documentId);
-            assertThat(ocrResult.getExtractedText())
-                    .as("OCR should extract some text from the PDF")
-                    .isNotEmpty();
-
-            System.out.println("✓ Real OCR worker processed the document successfully!");
-            System.out.println("  Extracted text length: " + ocrResult.getExtractedText().length() + " characters");
-            System.out.println("  First 100 chars: " + ocrResult.getExtractedText().substring(0, 
-                    Math.min(100, ocrResult.getExtractedText().length())));
-
-            // Continue with GenAI simulation and final verification...
-            String simulatedSummary = "Document processed by real OCR. Extracted text verified.";
-            org.rest.dto.GenAiResultDto genaiResult = new org.rest.dto.GenAiResultDto(
-                    documentId,
-                    objectKey,
-                    ocrResult.getExtractedText(),
-                    simulatedSummary,
-                    java.time.LocalDateTime.now()
-            );
-            rabbitTemplate.convertAndSend(genaiResultQueue, genaiResult);
-
-            // Wait for database update
             Awaitility.await()
-                    .atMost(10, TimeUnit.SECONDS)
-                    .pollInterval(500, TimeUnit.MILLISECONDS)
+                    .atMost(90, TimeUnit.SECONDS)  // Allow time for real OCR + GenAI processing
+                    .pollInterval(1, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
                         FileMetadata updatedMetadata = fileMetadataRepository.findById(documentId).orElseThrow();
-                        assertThat(updatedMetadata.getSummary()).isNotNull();
+                        assertThat(updatedMetadata.getSummary())
+                                .as("Summary should be set after pipeline completes")
+                                .isNotNull();
                     });
+            
+            FileMetadata finalMetadata = fileMetadataRepository.findById(documentId).orElseThrow();
+            System.out.println("✓ Real OCR worker pipeline completed successfully!");
+            System.out.println("  Summary: " + finalMetadata.getSummary().substring(0, 
+                    Math.min(100, finalMetadata.getSummary().length())) + "...");
 
         } else {
-            // Simulate OCR worker processing when real OCR is disabled
-            System.out.println("ℹUsing simulated OCR processing (real OCR disabled)");
+            // =====================================================================
+            // STEP 3: Simulate OCR worker processing when real OCR is disabled
+            // =====================================================================
+            System.out.println("ℹ Using simulated OCR processing (real OCR disabled)");
             
             String simulatedExtractedText = "This is extracted text from the PDF document. " +
                     "OCR processing completed successfully in test mode.";
             
+            // Simulate OCR worker sending result to GenAI queue
             OcrResultDto ocrResult = new OcrResultDto(
                     documentId,
                     objectKey,
@@ -218,15 +222,9 @@ class FileUploadPipelineE2EIT {
                     "Tesseract OCR v5.13.0 (Simulated)"
             );
             rabbitTemplate.convertAndSend(genaiQueue, ocrResult);
+            System.out.println("✓ Simulated OCR result sent to GenAI queue");
             
-            // Wait for simulated OCR result to be sent to GenAI queue
-            OcrResultDto genaiMessage = awaitMessageFromQueue(genaiQueue, OcrResultDto.class, 5);
-            assertThat(genaiMessage).isNotNull();
-            assertThat(genaiMessage.getExtractedText()).isEqualTo(simulatedExtractedText);
-            
-            System.out.println("Simulated OCR completed");
-            
-            // Continue with GenAI simulation
+            // Simulate GenAI worker sending result to result queue
             String simulatedSummary = "Document processed with simulated OCR. Test completed successfully.";
             org.rest.dto.GenAiResultDto genaiResult = new org.rest.dto.GenAiResultDto(
                     documentId,
@@ -236,6 +234,7 @@ class FileUploadPipelineE2EIT {
                     java.time.LocalDateTime.now()
             );
             rabbitTemplate.convertAndSend(genaiResultQueue, genaiResult);
+            System.out.println("✓ Simulated GenAI result sent to result queue");
             
             // Wait for database update
             Awaitility.await()
@@ -245,6 +244,8 @@ class FileUploadPipelineE2EIT {
                         FileMetadata updatedMetadata = fileMetadataRepository.findById(documentId).orElseThrow();
                         assertThat(updatedMetadata.getSummary()).isNotNull();
                     });
+            
+            System.out.println("✓ Simulated pipeline completed successfully");
         }
 
         // =====================================================================

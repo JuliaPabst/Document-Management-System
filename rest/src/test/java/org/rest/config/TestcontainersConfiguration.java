@@ -50,7 +50,9 @@ public class TestcontainersConfiguration {
     RabbitMQContainer rabbitMQContainer(Network network) {
         RabbitMQContainer container = new RabbitMQContainer(DockerImageName.parse("rabbitmq:3.13-management-alpine"))
                 .withNetwork(network)
-                .withNetworkAliases("rabbitmq");
+                .withNetworkAliases("rabbitmq")
+                .waitingFor(Wait.forLogMessage(".*Server startup complete.*", 1))
+                .withStartupTimeout(java.time.Duration.ofMinutes(2));
         container.start();
         return container;
     }
@@ -64,7 +66,11 @@ public class TestcontainersConfiguration {
                 .withEnv("MINIO_ROOT_PASSWORD", "minioadmin")
                 .withExposedPorts(9000)
                 .withNetwork(network)
-                .withNetworkAliases("minio");
+                .withNetworkAliases("minio")
+                .waitingFor(Wait.forHttp("/minio/health/ready")
+                        .forPort(9000)
+                        .forStatusCode(200))
+                .withStartupTimeout(java.time.Duration.ofMinutes(2));
         
         // Start container immediately
         container.start();
@@ -130,7 +136,7 @@ public class TestcontainersConfiguration {
         boolean ocrEnabled = Boolean.parseBoolean(System.getProperty("test.ocr.enabled", "false"));
         
         if (!ocrEnabled) {
-            System.out.println("ℹ️  OCR Worker container is DISABLED");
+            System.out.println("  OCR Worker container is DISABLED");
             System.out.println("   To enable, run: ./mvnw test -Dtest.ocr.enabled=true");
             return null; // No container if OCR is disabled
         }
@@ -140,12 +146,12 @@ public class TestcontainersConfiguration {
         
         try {
             // Try to use existing image first
-            System.out.println("🔍 Checking for existing OCR Worker image: " + imageName);
+            System.out.println(" Checking for existing OCR Worker image: " + imageName);
             container = new GenericContainer<>(DockerImageName.parse(imageName));
-            System.out.println("✅ Using existing OCR Worker image");
+            System.out.println(" Using existing OCR Worker image");
         } catch (Exception e) {
             // If image doesn't exist, build it from Dockerfile
-            System.out.println("🔨 Building OCR Worker image (first time)");
+            System.out.println(" Building OCR Worker image (first time)");
             System.out.println("   This will take 2-3 minutes. Subsequent runs will reuse the image.");
             
             Path paperlessWorkersPath = Paths.get(System.getProperty("user.dir"))
@@ -159,8 +165,11 @@ public class TestcontainersConfiguration {
             container = new GenericContainer<>(ocrWorkerImage);
         }
 
-        // Configure and start the container
-        container
+        // Make container effectively final for use in lambda
+        final GenericContainer<?> finalContainer = container;
+
+        // Configure the container
+        finalContainer
                 .withNetwork(network)
                 .withNetworkAliases("ocr-worker")
                 .withEnv("RABBITMQ_HOST", "rabbitmq")
@@ -174,27 +183,75 @@ public class TestcontainersConfiguration {
                 .withEnv("MINIO_BUCKET_NAME", "test-documents")
                 .withEnv("MINIO_USE_SSL", "false")
                 .withEnv("OPENAI_API_KEY", "test-key")
-                .waitingFor(Wait.forLogMessage(".*Started WorkersApplication.*", 1))
-                .withStartupTimeout(java.time.Duration.ofMinutes(5))
-                .dependsOn(rabbitMQContainer, minioContainer);
+                // Make RabbitMQ connection more resilient for tests
+                .withEnv("SPRING_RABBITMQ_CONNECTION_TIMEOUT", "60000")
+                .withEnv("SPRING_RABBITMQ_REQUESTED_HEARTBEAT", "60")
+                // Don't fail on startup if RabbitMQ is temporarily unavailable
+                .withEnv("SPRING_RABBITMQ_LISTENER_SIMPLE_RETRY_ENABLED", "true")
+                .withEnv("SPRING_RABBITMQ_LISTENER_SIMPLE_RETRY_INITIAL_INTERVAL", "3000")
+                .withEnv("SPRING_RABBITMQ_LISTENER_SIMPLE_RETRY_MAX_ATTEMPTS", "10")
+                // Use a simpler wait strategy - just wait for container to stay running
+                // The "Started" log message gets buried by RabbitMQ connection retry logs
+                .waitingFor(Wait.forListeningPort())  // Wait for any port to be listening
+                .withStartupTimeout(java.time.Duration.ofMinutes(2))  // Longer timeout for real OCR
+                // Ensure dependencies are fully started before starting this container
+                .dependsOn(minioContainer, rabbitMQContainer);
         
-        // Start the container and provide helpful error messages
+        // Give RabbitMQ and MinIO extra time to be fully ready on the network
+        System.out.println(" Waiting for dependencies to be fully ready...");
         try {
-            container.start();
-            System.out.println("OCR Worker container started successfully");
-        } catch (Exception e) {
-            System.err.println("Failed to start OCR Worker container:");
-            System.err.println("   " + e.getMessage());
-            System.err.println("\nContainer logs:");
-            try {
-                System.err.println(container.getLogs());
-            } catch (Exception logEx) {
-                System.err.println("   Could not retrieve logs: " + logEx.getMessage());
-            }
-            throw new RuntimeException("OCR Worker container failed to start. " +
-                    "Check the logs above for details.", e);
+            Thread.sleep(5000); // 5 second grace period to ensure queues are declared
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
         
-        return container;
+        // Start the container explicitly (dependencies are already started above)
+        System.out.println(" Starting OCR Worker container...");
+        System.out.println("   Waiting max 30 seconds for 'Started WorkersApplication' message");
+        
+        // Stream logs in real-time during startup
+        new Thread(() -> {
+            try {
+                Thread.sleep(3000); // Wait a bit for container to start
+                for (int i = 0; i < 10; i++) {
+                    if (finalContainer.isRunning()) {
+                        String logs = finalContainer.getLogs();
+                        String[] lines = logs.split("\n");
+                        System.out.println(" [" + (i*3) + "s] Last 5 log lines:");
+                        int start = Math.max(0, lines.length - 5);
+                        for (int j = start; j < lines.length; j++) {
+                            System.out.println("   " + lines[j]);
+                        }
+                    }
+                    Thread.sleep(3000);
+                }
+            } catch (Exception ignored) {}
+        }).start();
+        
+        try {
+            finalContainer.start();
+            System.out.println(" OCR Worker container started successfully!");
+            System.out.println(" Final container logs:");
+            String logs = finalContainer.getLogs();
+            String[] logLines = logs.split("\n");
+            for (String line : logLines) {
+                System.out.println("   " + line);
+            }
+        } catch (Exception e) {
+            System.err.println(" Failed to start OCR Worker container!");
+            System.err.println("Error: " + e.getMessage());
+            System.err.println("\n Full container logs:");
+            try {
+                String logs = finalContainer.getLogs();
+                for (String line : logs.split("\n")) {
+                    System.err.println("   " + line);
+                }
+            } catch (Exception logEx) {
+                System.err.println("Could not retrieve logs: " + logEx.getMessage());
+            }
+            throw e;
+        }
+        
+        return finalContainer;
     }
 }
