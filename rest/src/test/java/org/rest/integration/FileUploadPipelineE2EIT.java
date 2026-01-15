@@ -92,11 +92,11 @@ class FileUploadPipelineE2EIT {
         boolean ocrEnabled = Boolean.parseBoolean(System.getProperty("test.ocr.enabled", "false"));
         System.out.println("=".repeat(80));
         if (!ocrEnabled) {
-            System.out.println("ℹ️  Running with SIMULATED OCR (faster, no Docker build)");
+            System.out.println("ℹRunning with SIMULATED OCR (faster, no Docker build)");
             System.out.println("   To test with real Tesseract OCR, run:");
             System.out.println("   ./mvnw test -Dtest=FileUploadPipelineE2EIT -Dtest.ocr.enabled=true");
         } else {
-            System.out.println("✅ Running with REAL OCR WORKER");
+            System.out.println("Running with REAL OCR WORKER");
             System.out.println("   Container will be built and started automatically by Testcontainers");
         }
         System.out.println("=".repeat(80));
@@ -162,7 +162,7 @@ class FileUploadPipelineE2EIT {
             // =====================================================================
             // STEP 3: Wait for REAL OCR Worker to process the file
             // =====================================================================
-            System.out.println("⏳ Waiting for real OCR worker to process document...");
+            System.out.println("Waiting for real OCR worker to process document...");
             
             // The OCR worker should:
             // 1. Receive the message from ocr-worker-queue
@@ -204,7 +204,7 @@ class FileUploadPipelineE2EIT {
 
         } else {
             // Simulate OCR worker processing when real OCR is disabled
-            System.out.println("ℹ️  Using simulated OCR processing (real OCR disabled)");
+            System.out.println("ℹUsing simulated OCR processing (real OCR disabled)");
             
             String simulatedExtractedText = "This is extracted text from the PDF document. " +
                     "OCR processing completed successfully in test mode.";
@@ -224,7 +224,7 @@ class FileUploadPipelineE2EIT {
             assertThat(genaiMessage).isNotNull();
             assertThat(genaiMessage.getExtractedText()).isEqualTo(simulatedExtractedText);
             
-            System.out.println("✓ Simulated OCR completed");
+            System.out.println("Simulated OCR completed");
             
             // Continue with GenAI simulation
             String simulatedSummary = "Document processed with simulated OCR. Test completed successfully.";
@@ -256,7 +256,7 @@ class FileUploadPipelineE2EIT {
                 .andExpect(jsonPath("$.filename").value("ocr-test-document.pdf"));
 
         System.out.println("=".repeat(70));
-        System.out.println("✅ FILE UPLOAD PIPELINE TEST WITH " + 
+        System.out.println("FILE UPLOAD PIPELINE TEST WITH " + 
                 (ocrEnabled ? "REAL OCR" : "SIMULATED OCR") + " COMPLETED!");
         System.out.println("=".repeat(70));
     }

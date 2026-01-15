@@ -245,7 +245,7 @@ class ChatConversationE2EIT {
         assertThat(newConversation.get(0).getContent()).isEqualTo("Tell me about file management");
 
         System.out.println("=".repeat(70));
-        System.out.println("✅ CHAT CONVERSATION E2E TEST COMPLETED!");
+        System.out.println("CHAT CONVERSATION E2E TEST COMPLETED!");
         System.out.println("=".repeat(70));
     }
 

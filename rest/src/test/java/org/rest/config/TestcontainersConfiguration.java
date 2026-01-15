@@ -159,7 +159,8 @@ public class TestcontainersConfiguration {
             container = new GenericContainer<>(ocrWorkerImage);
         }
 
-        return container
+        // Configure and start the container
+        container
                 .withNetwork(network)
                 .withNetworkAliases("ocr-worker")
                 .withEnv("RABBITMQ_HOST", "rabbitmq")
@@ -173,8 +174,27 @@ public class TestcontainersConfiguration {
                 .withEnv("MINIO_BUCKET_NAME", "test-documents")
                 .withEnv("MINIO_USE_SSL", "false")
                 .withEnv("OPENAI_API_KEY", "test-key")
-                .waitingFor(Wait.forLogMessage(".*Started.*", 1))
+                .waitingFor(Wait.forLogMessage(".*Started WorkersApplication.*", 1))
                 .withStartupTimeout(java.time.Duration.ofMinutes(5))
                 .dependsOn(rabbitMQContainer, minioContainer);
+        
+        // Start the container and provide helpful error messages
+        try {
+            container.start();
+            System.out.println("OCR Worker container started successfully");
+        } catch (Exception e) {
+            System.err.println("Failed to start OCR Worker container:");
+            System.err.println("   " + e.getMessage());
+            System.err.println("\nContainer logs:");
+            try {
+                System.err.println(container.getLogs());
+            } catch (Exception logEx) {
+                System.err.println("   Could not retrieve logs: " + logEx.getMessage());
+            }
+            throw new RuntimeException("OCR Worker container failed to start. " +
+                    "Check the logs above for details.", e);
+        }
+        
+        return container;
     }
 }
