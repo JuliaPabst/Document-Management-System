@@ -48,8 +48,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * USAGE:
  * - Default (with simulated OCR): ./mvnw test -Dtest=FileUploadPipelineE2EIT
  * - With real OCR worker:        ./mvnw test -Dtest=FileUploadPipelineE2EIT -Dtest.ocr.enabled=true
- * 
- * Note: First run with real OCR takes longer as it builds the Docker image.
+ * Note: First run with real OCR takes 2-3 minutes as it builds the Docker image from paperlessWorkers.
+ *       Subsequent runs will reuse the built image (paperless-workers-test:latest).
  */
 @SpringBootTest
 @AutoConfigureMockMvc

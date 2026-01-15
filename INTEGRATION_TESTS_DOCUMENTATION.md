@@ -27,11 +27,14 @@ cd rest
 
 ### Run specific test
 ```bash
-# Run E2E test with simulated OCR (fast)
+# Run file upload E2E test with simulated OCR (fast)
 ./mvnw test -Dtest=FileUploadPipelineE2EIT
 
-# Run E2E test with real OCR worker (full integration)
+# Run file upload E2E test with real OCR worker (full integration)
 ./mvnw test -Dtest=FileUploadPipelineE2EIT -Dtest.ocr.enabled=true
+
+# Run chat conversation E2E test
+./mvnw test -Dtest=ChatConversationE2EIT
 ```
 
 ## Test Categories
@@ -67,7 +70,8 @@ cd rest
 **OCR Worker Container**:
 - Automatically built and started by Testcontainers when `-Dtest.ocr.enabled=true`
 - Built from `paperlessWorkers/Dockerfile` (includes Tesseract OCR)
-- First run takes longer (~2-3 minutes for Docker build)
+- Image name: `paperless-workers-test:latest`
+- First run takes ~2-3 minutes for Docker build
 - Subsequent runs reuse built image (much faster)
 - Container configuration in `TestcontainersConfiguration.java`:
   - Connects to same network as RabbitMQ and MinIO
@@ -78,40 +82,55 @@ cd rest
 - **Simulated OCR**: Fast feedback during development, CI/CD pipelines
 - **Real OCR**: Final validation before deployment, testing OCR accuracy
 
-### 2. Chat Feature Tests (@SpringBootTest + @AutoConfigureMockMvc)
+### 2. Chat Conversation E2E Test (@SpringBootTest + @AutoConfigureMockMvc)
 
-**Purpose**: Test chat functionality with full application context  
-**Examples**: 
-- `ChatMessageControllerIT.java` - Tests chat message persistence and retrieval
-- `ChatControllerIT.java` - Tests chat completion endpoint (with mocked OpenAI)
+**Purpose**: Test complete chat conversation workflow with full application context  
+**Example**: `ChatConversationE2EIT.java`
+
+**What it tests**:
+1. **User message creation** - Save chat message via REST API
+2. **Chat completion** - Send message to OpenAI with conversation history
+3. **Assistant response** - Receive and save OpenAI response to database
+4. **Conversation history** - Retrieve messages by session ID
+5. **Multi-turn conversations** - Follow-up messages with context
+6. **Session management** - Delete conversation (new chat)
+7. **Multiple sessions** - Independent concurrent chat sessions
+8. **Input validation** - Missing fields, constraints
 
 **Key Features**:
-- Tests full HTTP request/response cycle
-- Validates JSON responses using JsonPath
-- Tests validation and error handling
-- Uses MockMvc to avoid starting real HTTP server
-- Verifies database state after operations 
+- Tests full HTTP request/response cycle via MockMvc
+- Uses **real PostgreSQL** via Testcontainers for persistence
+- **Mocks OpenAI service** to avoid external API costs and ensure deterministic tests
+- Validates JSON responses using JsonPath (Hamcrest)
+- Verifies database state with AssertJ assertions
+- Tests conversation sequences and concurrent sessions
+- Tests session-based message filtering and retrieval
 
-**Chat Feature Integration Tests**:
-- **ChatMessageControllerIT**: Tests full workflow → HTTP Request → Controller → Service → Repository → Database
-  - Verifies both HTTP responses AND database persistence
-  - Tests conversation history management 
-  - Tests session-based message filtering and retrieval
-  - Tests conversation sequences and concurrent sessions
-- **ChatControllerIT**: Tests chat completion endpoint flow
-  - OpenAI service is mocked to avoid external API costs
-  - Focuses on controller request/response handling
-  - Tests conversation history passing and error handling
-- **ChatMessageRepositoryIT**: Tests repository with real PostgreSQL
-  - Custom queries and sorting
-  - Session-based operations
-  - Timestamp ordering
+**Test Flow Example** (from `completeConversationFlow` test):
+```
+1. User: "Hello! How many documents do I have?" → Saved to DB
+2. Send to OpenAI (mocked) → "You have 5 documents in your system."
+3. Assistant response saved to DB
+4. User: "Can you summarize them?" → Saved to DB
+5. Retrieve conversation history (3 messages)
+6. Send to OpenAI with history → "Your documents include: 2 invoices..."
+7. Assistant response saved to DB
+8. Verify complete conversation (4 messages) in DB
+9. Delete conversation
+10. Verify new conversation can start
+```
 
 **How Chat Feature Works**:
-1. User opens chat page → Frontend loads previous conversation from database (via ChatMessageController)
-2. User sends message -> Saved to DB -> Sent to OpenAI (via ChatController) -> Response saved to DB
+1. User opens chat page → Frontend loads previous conversation from database (via GET `/api/v1/chat-messages/session/{sessionId}`)
+2. User sends message → Saved to DB (POST `/api/v1/chat-messages`) → Sent to OpenAI (POST `/api/v1/chat`) → Response saved to DB
 3. All messages persist across sessions using localStorage session ID
-4. "New Chat" button deletes current conversation and creates new session
+4. "New Chat" button → Deletes current conversation (DELETE `/api/v1/chat-messages/session/{sessionId}`) and creates new session
+
+**API Endpoints Tested**:
+- `POST /api/v1/chat-messages` - Save chat message (user or assistant)
+- `GET /api/v1/chat-messages/session/{sessionId}` - Retrieve conversation history
+- `DELETE /api/v1/chat-messages/session/{sessionId}` - Delete conversation
+- `POST /api/v1/chat` - Generate chat completion via OpenAI
 
 ## Testcontainers Setup
 
@@ -145,15 +164,24 @@ GenericContainer<?> ocrWorkerContainer(Network network, ...) {
     
     if (!ocrEnabled) return null; // Skip container creation
     
-    // Build image from paperlessWorkers directory
-    ImageFromDockerfile ocrWorkerImage = 
-        new ImageFromDockerfile("paperless-workers-test", false)
-            .withDockerfile(paperlessWorkersPath.resolve("Dockerfile"))
-            .withFileFromPath(".", paperlessWorkersPath);
+    String imageName = "paperless-workers-test:latest";
+    GenericContainer<?> container;
     
-    return new GenericContainer<>(ocrWorkerImage)
+    try {
+        // Try to use existing image first
+        container = new GenericContainer<>(DockerImageName.parse(imageName));
+    } catch (Exception e) {
+        // Build from paperlessWorkers directory if not exists
+        ImageFromDockerfile ocrWorkerImage = 
+            new ImageFromDockerfile(imageName, false)
+                .withDockerfile(paperlessWorkersPath.resolve("Dockerfile"))
+                .withFileFromPath(".", paperlessWorkersPath);
+        container = new GenericContainer<>(ocrWorkerImage);
+    }
+    
+    return container
             .withNetwork(network)
-            .withEnv("SPRING_RABBITMQ_HOST", "rabbitmq")
+            .withEnv("RABBITMQ_HOST", "rabbitmq")
             // ... additional configuration
             .waitingFor(Wait.forLogMessage(".*Started.*", 1))
             .withStartupTimeout(Duration.ofMinutes(5));

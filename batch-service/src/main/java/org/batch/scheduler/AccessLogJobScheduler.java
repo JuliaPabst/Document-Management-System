@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Scheduler for the access log batch job
- * Runs daily at 01:00 AM by default (configurable via cron expression)
+ * Runs every 2 minutes by default (configurable via cron expression)
  */
 @Slf4j
 @Component
@@ -23,10 +23,10 @@ public class AccessLogJobScheduler {
 
     /**
      * Scheduled job execution
-     * Default: Daily at 01:00 AM (0 0 1 * * ?)
+     * Default: Every 2 minutes (0 */2 * * * ?)
      * Configurable via batch.schedule.cron property
      */
-    @Scheduled(cron = "${batch.schedule.cron:0 0 1 * * ?}")
+    @Scheduled(cron = "${batch.schedule.cron:0 */2 * * * ?}")
     public void runScheduledJob() {
         log.info("Scheduled batch job triggered at {}", java.time.LocalDateTime.now());
         
