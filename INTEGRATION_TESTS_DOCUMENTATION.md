@@ -71,8 +71,8 @@ cd rest
 - Automatically built and started by Testcontainers when `-Dtest.ocr.enabled=true`
 - Built from `paperlessWorkers/Dockerfile` (includes Tesseract OCR)
 - Image name: `paperless-workers-test:latest`
-- First run takes ~2-3 minutes for Docker build
-- Subsequent runs reuse built image (much faster)
+- First run takes several minutes for Docker build
+- Subsequent runs reuse built image (faster)
 - Container configuration in `TestcontainersConfiguration.java`:
   - Connects to same network as RabbitMQ and MinIO
   - Auto-configured environment variables
@@ -145,7 +145,7 @@ The `TestcontainersConfiguration` class provides the following containers:
 - **OCR Worker** - Starts only when `-Dtest.ocr.enabled=true`
   - Automatically built from `paperlessWorkers/Dockerfile`
   - Includes Tesseract OCR for text extraction
-  - First build takes ~2-3 minutes, then cached
+  - First build takes several minutes, then cached
 
 **Container Features**:
 - All containers connected via shared Docker network

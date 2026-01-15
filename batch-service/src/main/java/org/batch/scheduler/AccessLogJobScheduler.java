@@ -23,7 +23,7 @@ public class AccessLogJobScheduler {
 
     /**
      * Scheduled job execution
-     * Default: Every 2 minutes (0 */2 * * * ?)
+     * Default: Every 2 minutes (cron: 0 *&#47;2 * * * ?)
      * Configurable via batch.schedule.cron property
      */
     @Scheduled(cron = "${batch.schedule.cron:0 */2 * * * ?}")
