@@ -1,5 +1,6 @@
 package org.batch.scheduler;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -20,6 +21,12 @@ public class AccessLogJobScheduler {
 
     private final JobLauncher jobLauncher;
     private final Job accessLogProcessingJob;
+    
+    @PostConstruct
+    public void init() {
+        log.info("===== AccessLogJobScheduler bean initialized. Scheduled jobs should now trigger automatically. =====");
+        log.info("Cron expression: 0 */2 * * * ? (Every 2 minutes)");
+    }
 
     /**
      * Scheduled job execution
