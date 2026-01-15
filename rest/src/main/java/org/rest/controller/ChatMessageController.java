@@ -77,6 +77,26 @@ public class ChatMessageController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/session/{sessionId}")
+    @Operation(summary = "Get chat messages by session", description = "Retrieve all chat messages for a specific session ordered by timestamp")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Chat messages retrieved successfully"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<List<ChatMessageResponseDto>> getChatMessagesBySession(
+            @Parameter(description = "Session ID to filter by") 
+            @PathVariable String sessionId) {
+        log.info("Received request to get chat messages for session: {}", sessionId);
+
+        List<ChatMessage> messages = chatMessageService.getChatMessagesBySession(sessionId);
+
+        List<ChatMessageResponseDto> response = messages.stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
+
     @DeleteMapping
     @Operation(summary = "Delete chat messages", description = "Delete all chat messages or by session")
     @ApiResponses(value = {
@@ -93,6 +113,22 @@ public class ChatMessageController {
         } else {
             chatMessageService.deleteAllChatMessages();
         }
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/session/{sessionId}")
+    @Operation(summary = "Delete chat messages by session", description = "Delete all chat messages for a specific session")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Chat messages deleted successfully"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<Void> deleteChatMessagesBySession(
+            @Parameter(description = "Session ID to delete") 
+            @PathVariable String sessionId) {
+        log.info("Received request to delete chat messages for session: {}", sessionId);
+
+        chatMessageService.deleteChatMessagesBySession(sessionId);
 
         return ResponseEntity.noContent().build();
     }

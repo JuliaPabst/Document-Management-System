@@ -113,7 +113,7 @@ class ChatConversationE2EIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(chatRequest1)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.response").value("You have 5 documents in your system."));
+                .andExpect(jsonPath("$.message").value("You have 5 documents in your system."));
 
         // =====================================================================
         // STEP 3: Save assistant response to database
@@ -187,7 +187,7 @@ class ChatConversationE2EIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(chatRequest2)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.response").value("Your documents include: 2 invoices, 2 reports, and 1 contract."));
+                .andExpect(jsonPath("$.message").value("Your documents include: 2 invoices, 2 reports, and 1 contract."));
 
         // =====================================================================
         // STEP 7: Save second assistant response
