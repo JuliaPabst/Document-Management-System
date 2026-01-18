@@ -16,7 +16,7 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Create directories for batch processing
-RUN mkdir -p /data/input /data/archive
+RUN mkdir -p /app/input /app/archive
 
 # Copy the jar file from build stage
 COPY --from=build /app/target/*.jar app.jar
