@@ -5,7 +5,6 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
-import org.emailingestion.service.AttachmentProcessor;
 import org.emailingestion.service.EmailPollingService;
 import org.emailingestion.service.FileMetadataService;
 import org.emailingestion.service.FileStorage;
@@ -30,9 +29,6 @@ class EmailIngestionIntegrationTest {
 
     @Autowired
     private EmailPollingService emailPollingService;
-
-    @Autowired
-    private AttachmentProcessor attachmentProcessor;
 
     @MockitoBean
     private FileStorage fileStorage;
