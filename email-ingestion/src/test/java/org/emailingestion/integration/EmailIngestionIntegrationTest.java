@@ -5,7 +5,6 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
-import org.emailingestion.service.AttachmentProcessor;
 import org.emailingestion.service.EmailPollingService;
 import org.emailingestion.service.FileMetadataService;
 import org.emailingestion.service.FileStorage;
@@ -13,8 +12,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Properties;
@@ -31,13 +30,10 @@ class EmailIngestionIntegrationTest {
     @Autowired
     private EmailPollingService emailPollingService;
 
-    @Autowired
-    private AttachmentProcessor attachmentProcessor;
-
-    @MockBean
+    @MockitoBean
     private FileStorage fileStorage;
 
-    @MockBean
+    @MockitoBean
     private FileMetadataService fileMetadataService;
 
     private Session session;

@@ -14,6 +14,9 @@ import org.springframework.web.multipart.MultipartException;
 
 import java.time.OffsetDateTime;
 
+/**
+ * Global exception handler for REST API providing standardized error responses across all controllers
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

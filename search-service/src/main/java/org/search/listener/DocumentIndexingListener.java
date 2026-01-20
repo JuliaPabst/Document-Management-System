@@ -1,5 +1,6 @@
 package org.search.listener;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,10 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * RabbitMQ listener for document indexing events.
+ * Processes new document indexing, updates and deletions in Elasticsearch.
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -28,7 +33,7 @@ public class DocumentIndexingListener {
         try {
             // Parse message body to determine the type
             String body = new String(message.getBody());
-            Map<String, Object> map = objectMapper.readValue(body, Map.class);
+            Map<String, Object> map = objectMapper.readValue(body, new TypeReference<Map<String, Object>>() {});
             
             if (map.containsKey("eventType")) {
                 DocumentUpdateEventDto event = objectMapper.readValue(body, DocumentUpdateEventDto.class);

@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
+/**
+ * REST controller for document search operations using Elasticsearch.
+ * Provides POST/GET search endpoints and document deletion.
+ */
 @RestController
 @RequestMapping("/api/v1/search")
 @RequiredArgsConstructor

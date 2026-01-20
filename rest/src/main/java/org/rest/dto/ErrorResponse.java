@@ -5,6 +5,9 @@ import lombok.Data;
 
 import java.time.OffsetDateTime;
 
+/**
+ * Standardized error response DTO for REST API error handling
+ */
 @Data
 @Builder
 public class ErrorResponse {

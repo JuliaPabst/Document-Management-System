@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
+/**
+ * Response DTO for chat messages including ID, role, content, session ID and timestamp
+ */
 @Data
 @Builder
 @NoArgsConstructor

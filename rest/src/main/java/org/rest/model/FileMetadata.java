@@ -10,6 +10,11 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
+/**
+ * JPA entity representing metadata for files stored in the system.
+ * Links persisted metadata (filename, author, timestamps, summary) to the
+ * actual object stored in MinIO via "objectKey"
+ */
 @Entity
 @Table(name = "file_metadata")
 @Data

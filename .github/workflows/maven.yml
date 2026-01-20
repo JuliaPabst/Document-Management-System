@@ -87,3 +87,43 @@ jobs:
       with:
         name: search-service
         path: search-service/target/*.jar
+
+  build-batch-service:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+    - name: Build Batch Service with Maven
+      run: mvn -B package --file batch-service/pom.xml
+    - name: Upload Batch Service Artifact
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: batch-service
+        path: batch-service/target/*.jar
+
+  integration-tests-rest:
+    name: Integration Tests (REST)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+    - name: Run integration tests for REST module
+      run: mvn -B -f rest/pom.xml verify
+    - name: Upload integration test reports
+      if: always()
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: rest-integration-reports
+        path: |
+          rest/target/failsafe-reports/**
+          rest/target/surefire-reports/**

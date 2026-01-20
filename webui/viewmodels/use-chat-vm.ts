@@ -1,17 +1,57 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import type { ChatMessage, ChatRequest, ChatResponse } from "@/lib/types"
 import { apiClient } from "@/api/client"
+
+const SESSION_STORAGE_KEY = "chat-session-id"
 
 export function useChatVM() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [sessionId] = useState<string>(() => {
-    // Generate a unique session ID for this chat session
-    return `session-${Date.now()}-${Math.random().toString(36).substring(7)}`
+  const [sessionId, setSessionId] = useState<string>(() => {
+    // Try to restore previous session from localStorage
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(SESSION_STORAGE_KEY)
+      if (stored) return stored
+    }
+    // Generate a new session ID
+    const newSessionId = `session-${Date.now()}-${Math.random().toString(36).substring(7)}`
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SESSION_STORAGE_KEY, newSessionId)
+    }
+    return newSessionId
   })
+
+  // Load conversation history on mount
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        setIsLoadingHistory(true)
+        const history = await apiClient.getChatMessages(sessionId)
+        
+        // Convert DTO to ChatMessage format
+        const loadedMessages: ChatMessage[] = history.map((dto) => ({
+          id: dto.id.toString(),
+          role: dto.role as "user" | "assistant",
+          content: dto.content,
+          timestamp: new Date(dto.timestamp),
+          sessionId: dto.sessionId || undefined,
+        }))
+        
+        setMessages(loadedMessages)
+      } catch (err) {
+        console.error("Failed to load chat history:", err)
+        // Don't show error to user, just start with empty chat
+      } finally {
+        setIsLoadingHistory(false)
+      }
+    }
+
+    loadHistory()
+  }, [sessionId])
 
   const sendMessage = useCallback(async (messageContent: string) => {
     if (!messageContent.trim()) return
@@ -80,15 +120,35 @@ export function useChatVM() {
     }
   }, [messages, sessionId])
 
-  const clearMessages = useCallback(() => {
-    setMessages([])
-    setError(null)
-  }, [])
+  const clearMessages = useCallback(async () => {
+    try {
+      // Delete messages from database
+      await apiClient.deleteChatMessages(sessionId)
+      
+      // Clear local state
+      setMessages([])
+      setError(null)
+      
+      // Generate new session ID
+      const newSessionId = `session-${Date.now()}-${Math.random().toString(36).substring(7)}`
+      setSessionId(newSessionId)
+      
+      // Update localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem(SESSION_STORAGE_KEY, newSessionId)
+      }
+    } catch (err) {
+      console.error("Failed to clear chat history:", err)
+      setError("Failed to clear conversation history")
+    }
+  }, [sessionId])
 
   return {
     messages,
     isLoading,
+    isLoadingHistory,
     error,
+    sessionId,
     sendMessage,
     clearMessages,
   }

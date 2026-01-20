@@ -6,7 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-// DTO for GenAI processing results sent from GenAIWorker back to REST service
+/** 
+ * DTO for GenAI processing results sent from GenAIWorker back to REST service
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

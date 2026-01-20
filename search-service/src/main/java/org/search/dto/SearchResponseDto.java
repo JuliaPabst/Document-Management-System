@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Search response DTO containing search results, pagination metadata and search execution time
+ */
 @Data
 @Builder
 @NoArgsConstructor

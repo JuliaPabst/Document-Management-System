@@ -59,8 +59,8 @@ export class HttpClient {
     return response.data
   }
 
-  async delete(path: string): Promise<void> {
-    await this.client.delete(path)
+  async delete(path: string, params?: Record<string, string>): Promise<void> {
+    await this.client.delete(path, { params })
   }
 
   async downloadFile(path: string, filename: string): Promise<void> {

@@ -14,6 +14,9 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Processes email attachments by validating, uploading to MinIO, and triggering the OCR/GenAI pipeline
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,6 +31,14 @@ public class AttachmentProcessor {
     @Value("${email.max-file-size:52428800}")
     private long maxFileSize;
 
+    /**
+     * Validates and processes an email attachment:
+     * 1. decodes filename
+     * 2. validates extension and size
+     * 3. uploads to MinIO
+     * 4. saves metadata
+     * 5. triggers OCR/GenAI
+     */
     public void processAttachment(BodyPart bodyPart, String author) {
         String filename = null;
         try {

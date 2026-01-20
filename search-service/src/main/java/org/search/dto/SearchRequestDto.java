@@ -6,6 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Search request DTO with query, filters, pagination and sorting parameters.
+ * Supports filtering by author, file type and specific search fields.
+ */
 @Data
 @Builder
 @NoArgsConstructor

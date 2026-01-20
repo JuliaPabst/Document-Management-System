@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
+/**
+ * Event DTO for notifying about document updates or deletions 
+ * (e.g. to search service for index synchronization)
+ */
 @Data
 @Builder
 @NoArgsConstructor

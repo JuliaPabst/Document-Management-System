@@ -12,6 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Service for file metadata persistence, duplicate detection, and worker pipeline coordination.
+ * Manages CRUD operations, triggers OCR/GenAI processing via RabbitMQ, and publishes update events to search indexing.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j

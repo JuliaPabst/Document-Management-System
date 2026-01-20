@@ -12,6 +12,10 @@ import org.workers.service.OpenAIService;
 
 import java.time.LocalDateTime;
 
+/**
+ * RabbitMQ listener that receives OCR results and generates AI summaries using OpenAI.
+ * Sends complete results (text + summary) to the result queue for persistence and indexing.
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -23,6 +27,9 @@ public class GenAIWorker {
     @Value("${rabbitmq.queue.genai.result}")
     private String resultQueueName;
 
+    /**
+     * Processes OCR results: generates AI summary and sends complete result to persistence layer
+     */
     @RabbitListener(queues = "genai-worker-queue")
     public void processGenAiTask(OcrResultDto ocrResult) {
         log.info("GenAI Worker received OCR result for document ID: {}, text length: {} chars", 

@@ -6,6 +6,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
 
+/**
+ * Response DTO for file metadata including upload details, timestamps and AI-generated summary
+ */
 @Data
 @NoArgsConstructor
 @Schema(description = "DTO for file metadata response")

@@ -12,6 +12,9 @@ import org.springframework.context.annotation.Configuration;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Configures RabbitMQ with JSON message conversion and DTO class mapping between REST and search-service
+ */
 @Configuration
 public class RabbitMqConfig {
 

@@ -7,7 +7,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
+ 
+/**
+ * Repository for FileMetadata providing custom search queries and duplicate-detection helpers.
+ * Used by the REST service to query metadata and enforce unique filename/author constraints.
+ */
 @Repository
 public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long> {
     

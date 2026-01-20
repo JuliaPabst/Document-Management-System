@@ -15,6 +15,10 @@ import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * MinIO implementation of FileStorage interface for object storage operations.
+ * Handles file upload, download, deletion, and existence checks with automatic bucket creation.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j

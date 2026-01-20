@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Response DTO for document search containing results, page info and search metrics
+ */
 @Data
 @Builder
 @NoArgsConstructor

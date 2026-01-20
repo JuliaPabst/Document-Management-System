@@ -11,3 +11,12 @@ scrape_configs:
         labels:
           application: 'paperless-rest'
           environment: 'docker'
+
+  # Batch Service
+  - job_name: 'batch-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['batch-service:8080']
+        labels:
+          application: 'batch-service'
+          environment: 'docker'

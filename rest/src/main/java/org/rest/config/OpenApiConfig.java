@@ -5,6 +5,9 @@ import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configures OpenAPI/Swagger documentation for the REST API
+ */
 @Configuration
 public class OpenApiConfig {
     

@@ -6,7 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-// DTO for OCR processing results sent from OcrWorker to GenAIWorker
+/** 
+ * DTO for OCR processing results sent from OcrWorker to GenAIWorker
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

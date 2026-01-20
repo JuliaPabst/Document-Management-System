@@ -22,6 +22,7 @@ interface ApiAdapter {
   downloadFile(id: number, filename: string): Promise<void>
   saveChatMessage(request: ChatMessageRequestDto): Promise<ChatMessageResponseDto>
   getChatMessages(sessionId?: string): Promise<ChatMessageResponseDto[]>
+  deleteChatMessages(sessionId?: string): Promise<void>
   generateChatCompletion(request: ChatRequest): Promise<ChatResponse>
 }
 
@@ -73,6 +74,11 @@ class RestAdapter implements ApiAdapter {
   async getChatMessages(sessionId?: string): Promise<ChatMessageResponseDto[]> {
     const params = sessionId ? { sessionId } : undefined
     return this.http.get<ChatMessageResponseDto[]>("/v1/chat-messages", params)
+  }
+
+  async deleteChatMessages(sessionId?: string): Promise<void> {
+    const params = sessionId ? { sessionId } : undefined
+    return this.http.delete("/v1/chat-messages", params)
   }
 
   async generateChatCompletion(request: ChatRequest): Promise<ChatResponse> {
