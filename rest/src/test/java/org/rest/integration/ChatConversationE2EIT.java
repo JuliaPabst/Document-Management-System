@@ -154,7 +154,7 @@ class ChatConversationE2EIT {
         // =====================================================================
         // STEP 5: Retrieve conversation history for context
         // =====================================================================
-        String historyResponse = mockMvc.perform(get("/api/v1/chat-messages/session/{sessionId}", SESSION_ID))
+        mockMvc.perform(get("/api/v1/chat-messages/session/{sessionId}", SESSION_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$[0].role").value("user"))
@@ -162,10 +162,7 @@ class ChatConversationE2EIT {
                 .andExpect(jsonPath("$[1].role").value("assistant"))
                 .andExpect(jsonPath("$[1].content").value("You have 5 documents in your system."))
                 .andExpect(jsonPath("$[2].role").value("user"))
-                .andExpect(jsonPath("$[2].content").value("Can you summarize them?"))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+                .andExpect(jsonPath("$[2].content").value("Can you summarize them?"));
 
         // =====================================================================
         // STEP 6: Send follow-up to OpenAI with conversation history
