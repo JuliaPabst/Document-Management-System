@@ -306,14 +306,4 @@ class FileUploadPipelineE2EIT {
             throw new RuntimeException("Failed to extract document ID from response: " + jsonResponse, e);
         }
     }
-
-    private <T> T awaitMessageFromQueue(String queueName, Class<T> messageType, int timeoutSeconds) {
-        return Awaitility.await()
-                .atMost(timeoutSeconds, TimeUnit.SECONDS)
-                .pollInterval(200, TimeUnit.MILLISECONDS)
-                .until(() -> {
-                    Object message = rabbitTemplate.receiveAndConvert(queueName, 100);
-                    return message != null ? messageType.cast(message) : null;
-                }, msg -> msg != null);
-    }
 }
