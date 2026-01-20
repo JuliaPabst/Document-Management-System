@@ -13,8 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Properties;
@@ -34,10 +34,10 @@ class EmailIngestionIntegrationTest {
     @Autowired
     private AttachmentProcessor attachmentProcessor;
 
-    @MockBean
+    @MockitoBean
     private FileStorage fileStorage;
 
-    @MockBean
+    @MockitoBean
     private FileMetadataService fileMetadataService;
 
     private Session session;
