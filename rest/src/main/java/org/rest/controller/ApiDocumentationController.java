@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Serves OpenAPI specification in YAML and JSON formats from classpath resource
+ */
 @RestController
 @Slf4j
 public class ApiDocumentationController {

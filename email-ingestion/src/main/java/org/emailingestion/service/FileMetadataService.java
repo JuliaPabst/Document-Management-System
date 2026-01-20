@@ -9,6 +9,9 @@ import org.emailingestion.repository.FileMetadataRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Manages file metadata persistence with duplicate detection and RabbitMQ notification
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -38,6 +41,9 @@ public class FileMetadataService {
         return savedMetadata;
     }
 
+    /**
+     * Creates file metadata and sends notification to OCR queue to start processing pipeline
+     */
     public FileMetadata createFileMetadataWithWorkerNotification(FileMetadata fileMetadata) {
         FileMetadata savedMetadata = createFileMetadata(fileMetadata);
 

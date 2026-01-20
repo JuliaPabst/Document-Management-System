@@ -9,6 +9,11 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
+/**
+ * JPA entity representing a chat message stored in the database.
+ * Used to persist conversation history with role (user/assistant), content,
+ * optional session grouping and a timestamp.
+ */
 @Entity
 @Table(name = "chat_messages")
 @Data

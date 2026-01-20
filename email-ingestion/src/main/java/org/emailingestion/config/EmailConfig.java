@@ -15,6 +15,10 @@ import org.springframework.integration.mail.dsl.Mail;
 import java.io.ByteArrayOutputStream;
 import java.util.Properties;
 
+/**
+ * Configures Spring Integration flow for polling emails via IMAP/IMAPS.
+ * Processes incoming emails and delegates attachment handling to EmailPollingService.
+ */
 @Configuration
 @Slf4j
 public class EmailConfig {
@@ -49,6 +53,10 @@ public class EmailConfig {
     @Value("${email.polling.enabled:true}")
     private boolean pollingEnabled;
 
+    /**
+     * Creates the email integration flow that polls for unread emails and converts them to raw bytes
+     * before passing to the service layer. This disconnects from IMAP early to avoid connection issues.
+     */
     @Bean
     public IntegrationFlow emailInboundFlow(EmailPollingService emailPollingService) {
         if (!pollingEnabled) {
@@ -81,6 +89,9 @@ public class EmailConfig {
                 .get();
     }
 
+    /**
+     * Constructs the IMAP/IMAPS URL with encoded credentials for secure connection.
+     */
     private String buildEmailUrl() {
         try {
             // URL encoding
@@ -99,6 +110,9 @@ public class EmailConfig {
         }
     }
 
+    /**
+     * Configures JavaMail properties for SSL/TLS depending on the protocol.
+     */
     private Properties javaMailProperties() {
         Properties props = new Properties();
 

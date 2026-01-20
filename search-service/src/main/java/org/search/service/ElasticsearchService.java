@@ -26,6 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Service for managing document indexing, search and updates in Elasticsearch.
+ * Handles index creation, document CRUD operations
+ * and advanced search with filtering, highlighting and pagination
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j

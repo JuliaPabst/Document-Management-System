@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * Individual search result DTO with document metadata, relevance score and highlighted text
+ */
 @Data
 @Builder
 @NoArgsConstructor

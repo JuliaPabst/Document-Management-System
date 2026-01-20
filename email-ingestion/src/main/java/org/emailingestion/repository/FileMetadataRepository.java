@@ -8,6 +8,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Repository for FileMetadata with custom search and duplicate detection queries
+ */
 @Repository
 public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long> {
 
@@ -25,5 +28,6 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long
     @Query("SELECT f FROM FileMetadata f WHERE f.filename = :filename AND f.author = :author")
     List<FileMetadata> findByFilenameAndAuthor(@Param("filename") String filename, @Param("author") String author);
 
+    // Checks if a file with the same name already exists for the given author (duplicate detection)
     boolean existsByFilenameAndAuthor(String filename, String author);
 }

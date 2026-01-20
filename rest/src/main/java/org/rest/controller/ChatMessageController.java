@@ -20,6 +20,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * REST controller for managing chat message history and conversation sessions
+ */
 @RestController
 @RequestMapping("/api/v1/chat-messages")
 @RequiredArgsConstructor

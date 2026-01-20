@@ -7,6 +7,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configures MinIO client for object storage operations.
+ * Loads connection settings from application properties.
+ */
 @Configuration
 @Slf4j
 @Getter
@@ -24,6 +28,9 @@ public class MinIOConfig {
 	@Value("${minio.use-ssl:false}")
 	private boolean useSsl;
 
+	/**
+	 * Creates the MinioClient bean for file storage operations.
+	 */
 	@Bean
 	public MinioClient minioClient() {
 		try {

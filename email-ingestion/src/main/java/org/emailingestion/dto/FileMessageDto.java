@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
+/**
+ * Message DTO sent to RabbitMQ queues for file processing (OCR and GenAI)
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

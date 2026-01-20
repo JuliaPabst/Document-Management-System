@@ -13,6 +13,10 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * RabbitMQ listener for document indexing events.
+ * Processes new document indexing, updates and deletions in Elasticsearch.
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j

@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Request DTO for creating chat messages with role, content and optional session ID
+ */
 @Data
 @Builder
 @NoArgsConstructor

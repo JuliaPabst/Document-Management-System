@@ -14,6 +14,10 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+/**
+ * RabbitMQ listener that receives GenAI results, persists summaries to database
+ * and forwards to search indexing
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j

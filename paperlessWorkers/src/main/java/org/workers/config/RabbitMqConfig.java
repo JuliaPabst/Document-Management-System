@@ -9,9 +9,13 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configures RabbitMQ with JSON message serialization for worker queue communication
+ */
 @Configuration
 public class RabbitMqConfig {
 
+    // Configure Jackson JSON converter with JavaTimeModule for proper Instant serialization
     @Bean
     public MessageConverter jsonMessageConverter() {
         ObjectMapper objectMapper = new ObjectMapper();

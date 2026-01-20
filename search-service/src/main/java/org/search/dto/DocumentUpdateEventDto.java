@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
+/**
+ * Event DTO for document update and delete notifications received via RabbitMQ.
+ * Triggers Elasticsearch index updates or document removal based on event type.
+ */
 @Data
 @Builder
 @NoArgsConstructor

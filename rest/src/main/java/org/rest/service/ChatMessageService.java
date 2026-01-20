@@ -9,6 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Service responsible for persisting and managing chat messages.
+ * Provides CRUD-like operations used by controllers to store and query conversation history.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j

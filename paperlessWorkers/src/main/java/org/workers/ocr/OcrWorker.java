@@ -13,6 +13,10 @@ import org.workers.service.TesseractOcrService;
 
 import java.time.LocalDateTime;
 
+/**
+ * RabbitMQ listener that processes files from MinIO using Tesseract OCR.
+ * Extracts text from PDFs and images, then forwards results to GenAI queue.
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -28,6 +32,9 @@ public class OcrWorker {
     @Value("${minio.bucket-name}")
     private String bucketName;
 
+    /**
+     * Processes file messages: downloads from MinIO, extracts text via OCR, forwards to GenAI
+     */
     @RabbitListener(queues = "ocr-worker-queue")
     public void processOcrTask(FileMessageDto message) {
         log.info("OCR Worker received message for document ID: {}, file: {}", 

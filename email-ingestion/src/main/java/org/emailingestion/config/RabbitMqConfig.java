@@ -7,9 +7,15 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configures RabbitMQ with JSON message serialization for queue communication.
+ */
 @Configuration
 public class RabbitMqConfig {
 
+    /**
+     * Configures Jackson JSON converter for automatic DTO serialization/deserialization.
+     */
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();

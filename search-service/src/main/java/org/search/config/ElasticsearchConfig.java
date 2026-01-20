@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configures Elasticsearch client with Jackson JSON mapping and JavaTimeModule support
+ */
 @Configuration
 @Slf4j
 public class ElasticsearchConfig {
@@ -33,6 +36,7 @@ public class ElasticsearchConfig {
     @Bean
     public ElasticsearchClient elasticsearchClient(RestClient restClient) {
         ObjectMapper objectMapper = new ObjectMapper();
+        // Register JavaTimeModule for proper LocalDateTime serialization
         objectMapper.registerModule(new JavaTimeModule());
 
         RestClientTransport transport = new RestClientTransport(

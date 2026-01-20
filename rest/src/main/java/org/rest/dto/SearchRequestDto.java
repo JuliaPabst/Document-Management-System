@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Request DTO for document search with query, filters, pagination and sorting options
+ */
 @Data
 @Builder
 @NoArgsConstructor

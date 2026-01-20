@@ -22,6 +22,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * REST controller for file upload, download, metadata management and worker pipeline integration
+ */
 @RestController
 @RequestMapping("/api/v1/files")
 @RequiredArgsConstructor

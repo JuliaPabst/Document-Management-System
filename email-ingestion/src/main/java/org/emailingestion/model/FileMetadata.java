@@ -11,6 +11,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
+/**
+ * JPA entity storing metadata for files uploaded to MinIO.
+ * The objectKey links metadata to the actual file in object storage.
+ */
 @Entity
 @Table(name = "file_metadata")
 @Data
@@ -53,6 +57,7 @@ public class FileMetadata {
     @Column(name = "summary", length = 5000)
     private String summary;
 
+    // Automatically sets upload and edit timestamps on entity creation
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();

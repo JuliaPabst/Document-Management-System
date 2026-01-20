@@ -8,6 +8,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * DTO representing a document to be indexed in Elasticsearch.
+ * Contains document metadata, extracted text from OCR and AI-generated summary
+ */
 @Data
 @Builder
 @NoArgsConstructor
