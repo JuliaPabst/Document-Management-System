@@ -2,7 +2,6 @@ package org.batch.batch;
 
 import org.batch.dto.DocumentAccessRecord;
 import org.batch.model.DocumentAccessStatistics;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

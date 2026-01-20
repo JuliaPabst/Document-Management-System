@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.rest.config.TestcontainersConfiguration;
-import org.rest.dto.FileMessageDto;
 import org.rest.dto.OcrResultDto;
 import org.rest.model.FileMetadata;
 import org.rest.repository.FileMetadataRepository;
@@ -25,7 +24,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
