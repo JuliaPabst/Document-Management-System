@@ -14,7 +14,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
-// Service for generating document summaries using OpenAI API
+/**
+ * Service for generating document summaries using OpenAI API
+ */
 @Service
 @Slf4j
 public class OpenAIService {

@@ -13,7 +13,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-// Service for performing OCR on documents using Tesseract
+/**
+ * Service for performing OCR on documents using Tesseract
+ */
 @Service
 @Slf4j
 public class TesseractOcrService {
