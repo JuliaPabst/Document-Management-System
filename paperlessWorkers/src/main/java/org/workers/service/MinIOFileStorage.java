@@ -12,7 +12,9 @@ import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-// Service for downloading and checking existence of files in MinIO
+/**
+ * Service for downloading and checking existence of files in MinIO
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
