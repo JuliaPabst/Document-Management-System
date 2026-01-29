@@ -54,25 +54,4 @@ public class MinIOFileStorage implements FileStorage {
 		}
 	}
 
-	// Check if object exists in MinIO, using statObject
-	@Override
-	public boolean exists(String objectKey) {
-		try {
-			minioClient.statObject(
-					StatObjectArgs.builder()
-							.bucket(minioConfig.getBucketName())
-							.object(objectKey)
-							.build());
-			return true;
-		} catch (ErrorResponseException e) {
-			if (e.errorResponse().code().equals("NoSuchKey")) {
-				return false;
-			}
-			log.error("Error checking file existence - key: {}, error: {}", objectKey, e.getMessage());
-			throw new RuntimeException("Failed to check file existence: " + e.getMessage(), e);
-		} catch (Exception e) {
-			log.error("Error checking file existence - key: {}, error: {}", objectKey, e.getMessage());
-			throw new RuntimeException("Failed to check file existence: " + e.getMessage(), e);
-		}
-	}
 }
