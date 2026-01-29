@@ -30,7 +30,7 @@ public class GenAIWorker {
     /**
      * Processes OCR results: generates AI summary and sends complete result to persistence layer
      */
-    @RabbitListener(queues = "genai-worker-queue")
+    @RabbitListener(queues = "${rabbitmq.queue.genai}")
     public void processGenAiTask(OcrResultDto ocrResult) {
         log.info("GenAI Worker received OCR result for document ID: {}, text length: {} chars", 
                 ocrResult.getDocumentId(), ocrResult.getExtractedText().length());

@@ -35,7 +35,7 @@ public class OcrWorker {
     /**
      * Processes file messages: downloads from MinIO, extracts text via OCR, forwards to GenAI
      */
-    @RabbitListener(queues = "ocr-worker-queue")
+    @RabbitListener(queues = "${rabbitmq.queue.ocr}")
     public void processOcrTask(FileMessageDto message) {
         log.info("OCR Worker received message for document ID: {}, file: {}", 
                 message.getId(), message.getFilename());

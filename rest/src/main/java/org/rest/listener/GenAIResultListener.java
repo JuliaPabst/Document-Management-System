@@ -29,7 +29,7 @@ public class GenAIResultListener {
 	@Value("${rabbitmq.queue.search-indexing}")
 	private String searchIndexingQueue;
 
-	@RabbitListener(queues = "genai-result-queue")
+	@RabbitListener(queues = "${rabbitmq.queue.genai.result}")
 	public void handleGenAiResult(GenAiResultDto result) {
 		log.info("REST received GenAI result for document ID: {}, summary length: {} chars, extractedText length: {} chars",
 				result.getDocumentId(), result.getSummary().length(), result.getExtractedText().length());
