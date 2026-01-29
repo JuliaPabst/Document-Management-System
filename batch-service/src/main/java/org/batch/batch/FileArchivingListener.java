@@ -1,5 +1,6 @@
 package org.batch.batch;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
@@ -16,7 +17,10 @@ import java.time.format.DateTimeFormatter;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class FileArchivingListener implements JobExecutionListener {
+
+    private final AccessLogXmlReader reader;
 
     @Value("${batch.input.folder}")
     private String inputFolder;
@@ -30,6 +34,7 @@ public class FileArchivingListener implements JobExecutionListener {
     @Override
     public void beforeJob(JobExecution jobExecution) {
         log.info("Starting batch job: {}", jobExecution.getJobInstance().getJobName());
+        reader.reset();
     }
 
     @Override
