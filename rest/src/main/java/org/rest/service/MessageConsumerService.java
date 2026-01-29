@@ -10,10 +10,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MessageConsumerService {
 
-    public void processOcrResult(String result) {
-        log.info("RECEIVED OCR result: {}", result);
-    }
-
     public void processGenAiResult(String result) {
         log.info("RECEIVED GenAI result: {}", result);
     }

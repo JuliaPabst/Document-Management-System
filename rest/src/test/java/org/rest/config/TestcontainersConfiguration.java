@@ -111,11 +111,6 @@ public class TestcontainersConfiguration {
     }
 
     @Bean
-    public Queue ocrResultQueue() {
-        return new Queue("ocr-result-queue", false);
-    }
-
-    @Bean
     public Queue genaiResultQueue() {
         return new Queue("genai-result-queue", false);
     }
